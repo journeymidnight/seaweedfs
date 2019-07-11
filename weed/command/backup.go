@@ -1,17 +1,5 @@
 package command
 
-import (
-	"fmt"
-
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/util"
-	"github.com/spf13/viper"
-
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/storage"
-)
-
 var (
 	s BackupOptions
 )
@@ -51,76 +39,6 @@ var cmdBackup = &Command{
 }
 
 func runBackup(cmd *Command, args []string) bool {
-
-	util.LoadConfiguration("security", false)
-	grpcDialOption := security.LoadClientTLS(viper.Sub("grpc"), "client")
-
-	if *s.volumeId == -1 {
-		return false
-	}
-	vid := needle.VolumeId(*s.volumeId)
-
-	// find volume location, replication, ttl info
-	lookup, err := operation.Lookup(*s.master, vid.String())
-	if err != nil {
-		fmt.Printf("Error looking up volume %d: %v\n", vid, err)
-		return true
-	}
-	volumeServer := lookup.Locations[0].Url
-
-	stats, err := operation.GetVolumeSyncStatus(volumeServer, grpcDialOption, uint32(vid))
-	if err != nil {
-		fmt.Printf("Error get volume %d status: %v\n", vid, err)
-		return true
-	}
-	ttl, err := needle.ReadTTL(stats.Ttl)
-	if err != nil {
-		fmt.Printf("Error get volume %d ttl %s: %v\n", vid, stats.Ttl, err)
-		return true
-	}
-	replication, err := storage.NewReplicaPlacementFromString(stats.Replication)
-	if err != nil {
-		fmt.Printf("Error get volume %d replication %s : %v\n", vid, stats.Replication, err)
-		return true
-	}
-
-	v, err := storage.NewVolume(*s.dir, *s.collection, vid, storage.NeedleMapInMemory, replication, ttl, 0)
-	if err != nil {
-		fmt.Printf("Error creating or reading from volume %d: %v\n", vid, err)
-		return true
-	}
-
-	if v.SuperBlock.CompactionRevision < uint16(stats.CompactRevision) {
-		if err = v.Compact(0, 0); err != nil {
-			fmt.Printf("Compact Volume before synchronizing %v\n", err)
-			return true
-		}
-		if err = v.CommitCompact(); err != nil {
-			fmt.Printf("Commit Compact before synchronizing %v\n", err)
-			return true
-		}
-		v.SuperBlock.CompactionRevision = uint16(stats.CompactRevision)
-		v.DataFile().WriteAt(v.SuperBlock.Bytes(), 0)
-	}
-
-	datSize, _, _ := v.FileStat()
-
-	if datSize > stats.TailOffset {
-		// remove the old data
-		v.Destroy()
-		// recreate an empty volume
-		v, err = storage.NewVolume(*s.dir, *s.collection, vid, storage.NeedleMapInMemory, replication, ttl, 0)
-		if err != nil {
-			fmt.Printf("Error creating or reading from volume %d: %v\n", vid, err)
-			return true
-		}
-	}
-	defer v.Close()
-
-	if err := v.IncrementalBackup(volumeServer, grpcDialOption); err != nil {
-		fmt.Printf("Error synchronizing volume %d: %v\n", vid, err)
-		return true
-	}
-
-	return true
+	// FIXME
+	panic("not implemented yet")
 }

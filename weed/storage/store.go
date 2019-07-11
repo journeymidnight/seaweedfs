@@ -131,15 +131,16 @@ func (s *Store) Status() []*VolumeInfo {
 	for _, location := range s.Locations {
 		location.RLock()
 		for k, v := range location.volumes {
+			usage := v.store.Usage()
 			s := &VolumeInfo{
 				Id:               needle.VolumeId(k),
 				Size:             v.ContentSize(),
 				Collection:       v.Collection,
 				ReplicaPlacement: v.ReplicaPlacement,
 				Version:          v.Version(),
-				FileCount:        v.nm.FileCount(),
-				DeleteCount:      v.nm.DeletedCount(),
-				DeletedByteCount: v.nm.DeletedSize(),
+				FileCount:        int(usage.FileCounts),
+				DeleteCount:      0, // FIXME
+				DeletedByteCount: 0, // FIXME
 				ReadOnly:         v.readOnly,
 				Ttl:              v.Ttl,
 				CompactRevision:  uint32(v.CompactionRevision),
@@ -168,8 +169,9 @@ func (s *Store) CollectHeartbeat() *master_pb.Heartbeat {
 		maxVolumeCount = maxVolumeCount + location.MaxVolumeCount
 		location.Lock()
 		for _, v := range location.volumes {
-			if maxFileKey < v.nm.MaxFileKey() {
-				maxFileKey = v.nm.MaxFileKey()
+			usage := v.store.Usage()
+			if maxFileKey < NeedleId(usage.MaxIndex) {
+				maxFileKey = NeedleId(usage.MaxIndex)
 			}
 			if !v.expired(s.GetVolumeSizeLimit()) {
 				volumeMessages = append(volumeMessages, v.ToVolumeInformationMessage())

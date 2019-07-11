@@ -16,22 +16,8 @@ func (vs *VolumeServer) VolumeIncrementalCopy(req *volume_server_pb.VolumeIncrem
 	if v == nil {
 		return fmt.Errorf("not found volume id %d", req.VolumeId)
 	}
-
-	stopOffset, _, _ := v.FileStat()
-	foundOffset, isLastOne, err := v.BinarySearchByAppendAtNs(req.SinceNs)
-	if err != nil {
-		return fmt.Errorf("fail to locate by appendAtNs %d: %s", req.SinceNs, err)
-	}
-
-	if isLastOne {
-		return nil
-	}
-
-	startOffset := foundOffset.ToAcutalOffset()
-
-	buf := make([]byte, 1024*1024*2)
-	return sendFileContent(v.DataFile(), buf, startOffset, int64(stopOffset), stream)
-
+	// FIXME
+	panic("not implement")
 }
 
 func (vs *VolumeServer) VolumeSyncStatus(ctx context.Context, req *volume_server_pb.VolumeSyncStatusRequest) (*volume_server_pb.VolumeSyncStatusResponse, error) {

@@ -69,32 +69,6 @@ func (s *SuperBlock) Bytes() []byte {
 	return header
 }
 
-func (v *Volume) maybeWriteSuperBlock() error {
-	stat, e := v.dataFile.Stat()
-	if e != nil {
-		glog.V(0).Infof("failed to stat datafile %s: %v", v.dataFile.Name(), e)
-		return e
-	}
-	if stat.Size() == 0 {
-		v.SuperBlock.version = needle.CurrentVersion
-		_, e = v.dataFile.Write(v.SuperBlock.Bytes())
-		if e != nil && os.IsPermission(e) {
-			//read-only, but zero length - recreate it!
-			if v.dataFile, e = os.Create(v.dataFile.Name()); e == nil {
-				if _, e = v.dataFile.Write(v.SuperBlock.Bytes()); e == nil {
-					v.readOnly = false
-				}
-			}
-		}
-	}
-	return e
-}
-
-func (v *Volume) readSuperBlock() (err error) {
-	v.SuperBlock, err = ReadSuperBlock(v.dataFile)
-	return err
-}
-
 // ReadSuperBlock reads from data file and load it into volume's super block
 func ReadSuperBlock(dataFile *os.File) (superBlock SuperBlock, err error) {
 	if _, err = dataFile.Seek(0, 0); err != nil {

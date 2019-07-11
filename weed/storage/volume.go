@@ -2,33 +2,26 @@ package storage
 
 import (
 	"fmt"
-
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/stats"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-
-	"os"
 	"path"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/chrislusf/seaweedfs/weed/glog"
+	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
+	"github.com/chrislusf/seaweedfs/weed/stats"
+	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	cannlys "github.com/thesues/cannyls-go/storage"
 )
 
 type Volume struct {
-	Id            needle.VolumeId
-	dir           string
-	Collection    string
-	dataFile      *os.File
-	nm            NeedleMapper
-	compactingWg  sync.WaitGroup
-	needleMapKind NeedleMapType
-	readOnly      bool
+	Id         needle.VolumeId
+	dir        string
+	Collection string
+	readOnly   bool
+	store      *cannlys.Storage
 
 	SuperBlock
 
-	dataFileAccessLock    sync.Mutex
 	lastModifiedTsSeconds uint64 //unix time in seconds
 	lastAppendAtNs        uint64 //unix time in nanoseconds
 
@@ -36,16 +29,31 @@ type Volume struct {
 	lastCompactRevision    uint16
 }
 
-func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapKind NeedleMapType, replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, e error) {
-	// if replicaPlacement is nil, the superblock will be loaded from disk
-	v = &Volume{dir: dirname, Collection: collection, Id: id}
-	v.SuperBlock = SuperBlock{ReplicaPlacement: replicaPlacement, Ttl: ttl}
-	v.needleMapKind = needleMapKind
-	e = v.load(true, true, needleMapKind, preallocate)
-	return
+func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapKind NeedleMapType,
+	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, e error) {
+
+	v = &Volume{
+		dir:        dirname,
+		Collection: collection,
+		Id:         id,
+		SuperBlock: SuperBlock{
+			ReplicaPlacement: replicaPlacement,
+			Ttl:              ttl,
+		},
+	}
+	store, e := cannlys.CreateCannylsStorage(v.FileName(),
+		10<<20,
+		0.1)
+	if e != nil {
+		return nil, e
+	}
+	v.store = store
+
+	return v, nil
 }
 func (v *Volume) String() string {
-	return fmt.Sprintf("Id:%v, dir:%s, Collection:%s, dataFile:%v, nm:%v, readOnly:%v", v.Id, v.dir, v.Collection, v.dataFile, v.nm, v.readOnly)
+	return fmt.Sprintf("Id:%v, dir:%s, Collection:%s, dataFile:%v, readOnly:%v",
+		v.Id, v.dir, v.Collection, v.FileName(), v.readOnly)
 }
 
 func VolumeFileName(dir string, collection string, id int) (fileName string) {
@@ -60,59 +68,36 @@ func VolumeFileName(dir string, collection string, id int) (fileName string) {
 func (v *Volume) FileName() (fileName string) {
 	return VolumeFileName(v.dir, v.Collection, int(v.Id))
 }
-func (v *Volume) DataFile() *os.File {
-	return v.dataFile
-}
-
-func (v *Volume) Version() needle.Version {
-	return v.SuperBlock.Version()
-}
 
 func (v *Volume) FileStat() (datSize uint64, idxSize uint64, modTime time.Time) {
-	v.dataFileAccessLock.Lock()
-	defer v.dataFileAccessLock.Unlock()
-
-	if v.dataFile == nil {
-		return
-	}
-
-	stat, e := v.dataFile.Stat()
-	if e == nil {
-		return uint64(stat.Size()), v.nm.IndexFileSize(), stat.ModTime()
-	}
-	glog.V(0).Infof("Failed to read file size %s %v", v.dataFile.Name(), e)
-	return // -1 causes integer overflow and the volume to become unwritable.
+	// FIXME
+	usage := v.store.Usage()
+	return usage.CurrentFileSize, usage.JournalCapacity, time.Now()
 }
 
 func (v *Volume) IndexFileSize() uint64 {
-	return v.nm.IndexFileSize()
+	return 0
 }
 
 func (v *Volume) FileCount() uint64 {
-	return uint64(v.nm.FileCount())
+	usage := v.store.Usage()
+	return usage.FileCounts
 }
 
 // Close cleanly shuts down this volume
 func (v *Volume) Close() {
-	v.dataFileAccessLock.Lock()
-	defer v.dataFileAccessLock.Unlock()
-	if v.nm != nil {
-		v.nm.Close()
-		v.nm = nil
-	}
-	if v.dataFile != nil {
-		_ = v.dataFile.Close()
-		v.dataFile = nil
-		stats.VolumeServerVolumeCounter.WithLabelValues(v.Collection, "volume").Dec()
-	}
+	v.store.Close()
+	stats.VolumeServerVolumeCounter.WithLabelValues(v.Collection, "volume").Dec()
 }
 
 func (v *Volume) NeedToReplicate() bool {
+	// FIXME
 	return v.ReplicaPlacement.GetCopyCount() > 1
 }
 
 func (v *Volume) ContentSize() uint64 {
-	return v.nm.ContentSize()
+	usage := v.store.Usage()
+	return usage.CurrentFileSize
 }
 
 // volume is expired if modified time + volume ttl < now
@@ -157,13 +142,14 @@ func (v *Volume) expiredLongEnough(maxDelayMinutes uint32) bool {
 
 func (v *Volume) ToVolumeInformationMessage() *master_pb.VolumeInformationMessage {
 	size, _, modTime := v.FileStat()
+	usage := v.store.Usage()
 	return &master_pb.VolumeInformationMessage{
 		Id:               uint32(v.Id),
 		Size:             size,
 		Collection:       v.Collection,
-		FileCount:        uint64(v.nm.FileCount()),
-		DeleteCount:      uint64(v.nm.DeletedCount()),
-		DeletedByteCount: v.nm.DeletedSize(),
+		FileCount:        usage.FileCounts,
+		DeleteCount:      0, // FIXME
+		DeletedByteCount: 0, // FIXME
 		ReadOnly:         v.readOnly,
 		ReplicaPlacement: uint32(v.ReplicaPlacement.Byte()),
 		Version:          uint32(v.Version()),

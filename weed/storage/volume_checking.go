@@ -4,35 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/chrislusf/seaweedfs/weed/storage/idx"
 	"github.com/chrislusf/seaweedfs/weed/storage/needle"
 	. "github.com/chrislusf/seaweedfs/weed/storage/types"
 	"github.com/chrislusf/seaweedfs/weed/util"
 )
 
 func CheckVolumeDataIntegrity(v *Volume, indexFile *os.File) (lastAppendAtNs uint64, e error) {
-	var indexSize int64
-	if indexSize, e = verifyIndexFileIntegrity(indexFile); e != nil {
-		return 0, fmt.Errorf("verifyIndexFileIntegrity %s failed: %v", indexFile.Name(), e)
-	}
-	if indexSize == 0 {
-		return 0, nil
-	}
-	var lastIdxEntry []byte
-	if lastIdxEntry, e = readIndexEntryAtOffset(indexFile, indexSize-NeedleMapEntrySize); e != nil {
-		return 0, fmt.Errorf("readLastIndexEntry %s failed: %v", indexFile.Name(), e)
-	}
-	key, offset, size := idx.IdxFileEntry(lastIdxEntry)
-	if offset.IsZero() {
-		return 0, nil
-	}
-	if size == TombstoneFileSize {
-		size = 0
-	}
-	if lastAppendAtNs, e = verifyNeedleIntegrity(v.dataFile, v.Version(), offset.ToAcutalOffset(), key, size); e != nil {
-		return lastAppendAtNs, fmt.Errorf("verifyNeedleIntegrity %s failed: %v", indexFile.Name(), e)
-	}
-	return
+	// FIXME
+	return 0, nil
 }
 
 func verifyIndexFileIntegrity(indexFile *os.File) (indexSize int64, err error) {

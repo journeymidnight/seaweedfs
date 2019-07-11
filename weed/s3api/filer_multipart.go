@@ -23,7 +23,7 @@ type InitiateMultipartUploadResult struct {
 }
 
 func (s3a *S3ApiServer) createMultipartUpload(ctx context.Context, input *s3.CreateMultipartUploadInput) (output *InitiateMultipartUploadResult, code ErrorCode) {
-	uploadId, _ := uuid.NewV4()
+	uploadId := uuid.NewV4()
 	uploadIdString := uploadId.String()
 
 	if err := s3a.mkdir(ctx, s3a.genUploadsFolder(*input.Bucket), uploadIdString, func(entry *filer_pb.Entry) {
@@ -101,9 +101,9 @@ func (s3a *S3ApiServer) completeMultipartUpload(ctx context.Context, input *s3.C
 	output = &CompleteMultipartUploadResult{
 		CompleteMultipartUploadOutput: s3.CompleteMultipartUploadOutput{
 			Location: aws.String(fmt.Sprintf("http://%s%s/%s", s3a.option.Filer, dirName, entryName)),
-			Bucket: input.Bucket,
-			ETag:   aws.String("\"" + filer2.ETag(finalParts) + "\""),
-			Key:    objectKey(input.Key),
+			Bucket:   input.Bucket,
+			ETag:     aws.String("\"" + filer2.ETag(finalParts) + "\""),
+			Key:      objectKey(input.Key),
 		},
 	}
 

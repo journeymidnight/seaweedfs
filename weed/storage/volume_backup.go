@@ -1,12 +1,10 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/chrislusf/seaweedfs/weed/operation"
 	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
 	"github.com/chrislusf/seaweedfs/weed/storage/idx"
 	"github.com/chrislusf/seaweedfs/weed/storage/needle"
@@ -16,11 +14,8 @@ import (
 
 func (v *Volume) GetVolumeSyncStatus() *volume_server_pb.VolumeSyncStatusResponse {
 	var syncStatus = &volume_server_pb.VolumeSyncStatusResponse{}
-	if stat, err := v.dataFile.Stat(); err == nil {
-		syncStatus.TailOffset = uint64(stat.Size())
-	}
 	syncStatus.Collection = v.Collection
-	syncStatus.IdxFileSize = v.nm.IndexFileSize()
+	syncStatus.IdxFileSize = 0
 	syncStatus.CompactRevision = uint32(v.SuperBlock.CompactionRevision)
 	syncStatus.Ttl = v.SuperBlock.Ttl.String()
 	syncStatus.Replication = v.SuperBlock.ReplicaPlacement.String()
@@ -58,54 +53,8 @@ update needle map when receiving new .dat bytes. But seems not necessary now.)
 */
 
 func (v *Volume) IncrementalBackup(volumeServer string, grpcDialOption grpc.DialOption) error {
-
-	ctx := context.Background()
-
-	startFromOffset, _, _ := v.FileStat()
-	appendAtNs, err := v.findLastAppendAtNs()
-	if err != nil {
-		return err
-	}
-
-	err = operation.WithVolumeServerClient(volumeServer, grpcDialOption, func(client volume_server_pb.VolumeServerClient) error {
-
-		stream, err := client.VolumeIncrementalCopy(ctx, &volume_server_pb.VolumeIncrementalCopyRequest{
-			VolumeId: uint32(v.Id),
-			SinceNs:  appendAtNs,
-		})
-		if err != nil {
-			return err
-		}
-
-		v.dataFile.Seek(int64(startFromOffset), io.SeekStart)
-
-		for {
-			resp, recvErr := stream.Recv()
-			if recvErr != nil {
-				if recvErr == io.EOF {
-					break
-				} else {
-					return recvErr
-				}
-			}
-
-			_, writeErr := v.dataFile.Write(resp.FileContent)
-			if writeErr != nil {
-				return writeErr
-			}
-		}
-
-		return nil
-
-	})
-
-	if err != nil {
-		return err
-	}
-
-	// add to needle map
-	return ScanVolumeFileFrom(v.version, v.dataFile, int64(startFromOffset), &VolumeFileScanner4GenIdx{v: v})
-
+	// FIXME
+	return nil
 }
 
 func (v *Volume) findLastAppendAtNs() (uint64, error) {
@@ -149,17 +98,8 @@ func (v *Volume) locateLastAppendEntry() (Offset, error) {
 }
 
 func (v *Volume) readAppendAtNs(offset Offset) (uint64, error) {
-
-	n, _, bodyLength, err := needle.ReadNeedleHeader(v.dataFile, v.SuperBlock.version, offset.ToAcutalOffset())
-	if err != nil {
-		return 0, fmt.Errorf("ReadNeedleHeader: %v", err)
-	}
-	_, err = n.ReadNeedleBody(v.dataFile, v.SuperBlock.version, offset.ToAcutalOffset()+int64(NeedleHeaderSize), bodyLength)
-	if err != nil {
-		return 0, fmt.Errorf("ReadNeedleBody offset %d, bodyLength %d: %v", offset.ToAcutalOffset(), bodyLength, err)
-	}
-	return n.AppendAtNs, nil
-
+	// FIXME
+	return 0, nil
 }
 
 // on server side
@@ -249,8 +189,6 @@ func (scanner *VolumeFileScanner4GenIdx) ReadNeedleBody() bool {
 }
 
 func (scanner *VolumeFileScanner4GenIdx) VisitNeedle(n *needle.Needle, offset int64) error {
-	if n.Size > 0 && n.Size != TombstoneFileSize {
-		return scanner.v.nm.Put(n.Id, ToOffset(offset), n.Size)
-	}
-	return scanner.v.nm.Delete(n.Id, ToOffset(offset))
+	// FIXME
+	return nil
 }
