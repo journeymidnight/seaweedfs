@@ -23,7 +23,7 @@ func (v *Volume) Destroy() (err error) {
 		return
 	}
 	v.Close()
-	os.Remove(v.FileName() + ".dat")
+	os.Remove(v.FileName() + ".lump")
 	os.Remove(v.FileName() + ".idx")
 	os.Remove(v.FileName() + ".cpd")
 	os.Remove(v.FileName() + ".cpx")
@@ -44,6 +44,7 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 		n.SetHasTtl()
 		n.Ttl = v.Ttl
 	}
+	fmt.Println("writeNeedle", len(n.Data))
 	lumpId := lump.FromU64(0, uint64(n.Id))
 	data := block.FromBytes(n.Data, block.Min())
 	lumpData := lump.NewLumpDataWithAb(data)
@@ -83,6 +84,7 @@ func (v *Volume) readNeedle(n *needle.Needle) (int, error) {
 		return -1, err
 	}
 	bytesRead := len(n.Data)
+	fmt.Println("readNeedle", len(n.Data))
 	if !n.HasTtl() {
 		return bytesRead, nil
 	}

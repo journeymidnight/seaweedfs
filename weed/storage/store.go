@@ -108,7 +108,8 @@ func (s *Store) addVolume(vid needle.VolumeId, collection string, needleMapKind 
 	if location := s.FindFreeLocation(); location != nil {
 		glog.V(0).Infof("In dir %s adds volume:%v collection:%s replicaPlacement:%v ttl:%v",
 			location.Directory, vid, collection, replicaPlacement, ttl)
-		if volume, err := NewVolume(location.Directory, collection, vid, needleMapKind, replicaPlacement, ttl, preallocate); err == nil {
+		if volume, err := NewVolume(location.Directory, collection, vid,
+			needleMapKind, replicaPlacement, ttl, preallocate); err == nil {
 			location.SetVolume(vid, volume)
 			glog.V(0).Infof("add volume %d", vid)
 			s.NewVolumesChan <- master_pb.VolumeShortInformationMessage{
@@ -219,11 +220,14 @@ func (s *Store) Write(i needle.VolumeId, n *needle.Needle) (size uint32, isUncha
 			err = fmt.Errorf("volume %d is read only", i)
 			return
 		}
-		// TODO: count needle size ahead
+		size = uint32(len(n.Data))
+		fmt.Println("needle size:", size, "len data:", len(n.Data))
 		if MaxPossibleVolumeSize >= v.ContentSize()+uint64(size) {
 			_, size, isUnchanged, err = v.writeNeedle(n)
 		} else {
-			err = fmt.Errorf("Volume Size Limit %d Exceeded! Current size is %d", s.GetVolumeSizeLimit(), v.ContentSize())
+			err = fmt.Errorf(
+				"Volume Size Limit %d Exceeded! Current size is %d",
+				s.GetVolumeSizeLimit(), v.ContentSize())
 		}
 		return
 	}

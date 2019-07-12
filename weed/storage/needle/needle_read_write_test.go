@@ -30,7 +30,7 @@ func TestAppend(t *testing.T) {
 		Padding:      nil,                 // Padding    []byte `comment:"Aligned to 8 bytes"`
 	}
 
-	tempFile, err := ioutil.TempFile("", ".dat")
+	tempFile, err := ioutil.TempFile("", ".lump")
 	if err != nil {
 		t.Errorf("Fail TempFile. %v", err)
 		return

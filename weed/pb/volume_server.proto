@@ -36,7 +36,7 @@ service VolumeServer {
     rpc VolumeMarkReadonly (VolumeMarkReadonlyRequest) returns (VolumeMarkReadonlyResponse) {
     }
 
-    // copy the .idx .dat files, and mount this volume
+    // copy the .idx .lump files, and mount this volume
     rpc VolumeCopy (VolumeCopyRequest) returns (VolumeCopyResponse) {
     }
     rpc ReadVolumeFileStatus (ReadVolumeFileStatusRequest) returns (ReadVolumeFileStatusResponse) {

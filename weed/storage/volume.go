@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"strconv"
 	"time"
@@ -32,6 +33,14 @@ type Volume struct {
 func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapKind NeedleMapType,
 	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, e error) {
 
+	// FIXME
+	if replicaPlacement == nil {
+		replicaPlacement = &ReplicaPlacement{0,0,0}
+	}
+	if ttl == nil {
+		ttl = &needle.TTL{}
+	}
+
 	v = &Volume{
 		dir:        dirname,
 		Collection: collection,
@@ -41,11 +50,17 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 			Ttl:              ttl,
 		},
 	}
-	store, e := cannlys.CreateCannylsStorage(v.FileName(),
-		10<<20,
-		0.1)
-	if e != nil {
-		return nil, e
+	_, err := os.Stat(v.FileName())
+	var store *cannlys.Storage
+	if os.IsNotExist(err) {
+		store, e = cannlys.CreateCannylsStorage(v.FileName(),
+			10<<20,
+			0.1)
+		if e != nil {
+			return nil, e
+		}
+	} else {
+		store, e = cannlys.OpenCannylsStorage(v.FileName())
 	}
 	v.store = store
 
@@ -59,9 +74,9 @@ func (v *Volume) String() string {
 func VolumeFileName(dir string, collection string, id int) (fileName string) {
 	idString := strconv.Itoa(id)
 	if collection == "" {
-		fileName = path.Join(dir, idString)
+		fileName = path.Join(dir, idString+".lump")
 	} else {
-		fileName = path.Join(dir, collection+"_"+idString)
+		fileName = path.Join(dir, collection+"_"+idString+".lump")
 	}
 	return
 }

@@ -46,13 +46,16 @@ type Needle struct {
 }
 
 func (n *Needle) String() (str string) {
-	str = fmt.Sprintf("%s Size:%d, DataSize:%d, Name:%s, Mime:%s", formatNeedleIdCookie(n.Id, n.Cookie), n.Size, n.DataSize, n.Name, n.Mime)
+	str = fmt.Sprintf("%s Size:%d, DataSize:%d, Name:%s, Mime:%s",
+		formatNeedleIdCookie(n.Id, n.Cookie), n.Size, n.DataSize, n.Name, n.Mime)
 	return
 }
 
 func ParseUpload(r *http.Request) (
-	fileName string, data []byte, mimeType string, pairMap map[string]string, isGzipped bool, originalDataSize int,
+	fileName string, data []byte, mimeType string, pairMap map[string]string,
+	isGzipped bool, originalDataSize int,
 	modifiedTime uint64, ttl *TTL, isChunkedFile bool, e error) {
+
 	pairMap = make(map[string]string)
 	for k, v := range r.Header {
 		if len(v) > 0 && strings.HasPrefix(k, PairNamePrefix) {

@@ -14,7 +14,8 @@ import (
 )
 
 func parseMultipart(r *http.Request) (
-	fileName string, data []byte, mimeType string, isGzipped bool, originalDataSize int, isChunkedFile bool, e error) {
+	fileName string, data []byte, mimeType string, isGzipped bool,
+	originalDataSize int, isChunkedFile bool, e error) {
 	defer func() {
 		if e != nil && r.Body != nil {
 			io.Copy(ioutil.Discard, r.Body)
