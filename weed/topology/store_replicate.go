@@ -36,6 +36,7 @@ func ReplicatedWrite(masterNode string, s *storage.Store,
 	if !needToReplicate {
 		needToReplicate = s.GetVolume(volumeId).NeedToReplicate()
 	}
+	fmt.Println("needToReplicate:", needToReplicate)
 	if needToReplicate { //send to other replica locations
 		if r.FormValue("type") != "replicate" {
 

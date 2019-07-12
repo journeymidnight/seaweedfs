@@ -35,7 +35,7 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 
 	// FIXME
 	if replicaPlacement == nil {
-		replicaPlacement = &ReplicaPlacement{0,0,0}
+		replicaPlacement = &ReplicaPlacement{0, 0, 0}
 	}
 	if ttl == nil {
 		ttl = &needle.TTL{}
@@ -48,6 +48,7 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 		SuperBlock: SuperBlock{
 			ReplicaPlacement: replicaPlacement,
 			Ttl:              ttl,
+			version:          needle.CurrentVersion,
 		},
 	}
 	_, err := os.Stat(v.FileName())
@@ -56,11 +57,11 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 		store, e = cannlys.CreateCannylsStorage(v.FileName(),
 			10<<20,
 			0.1)
-		if e != nil {
-			return nil, e
-		}
 	} else {
 		store, e = cannlys.OpenCannylsStorage(v.FileName())
+	}
+	if e != nil {
+		return nil, e
 	}
 	v.store = store
 

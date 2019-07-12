@@ -106,6 +106,9 @@ func (vl *VolumeLayout) UnRegisterVolume(v *storage.VolumeInfo, dn *DataNode) {
 }
 
 func (vl *VolumeLayout) ensureCorrectWritables(v *storage.VolumeInfo) {
+	fmt.Println("ensureCorrectWritables",
+		vl.vid2location[v.Id], vl.rp.GetCopyCount(),
+		vl.isWritable(v))
 	if vl.vid2location[v.Id].Length() == vl.rp.GetCopyCount() && vl.isWritable(v) {
 		if _, ok := vl.oversizedVolumes[v.Id]; !ok {
 			vl.addToWritable(v.Id)

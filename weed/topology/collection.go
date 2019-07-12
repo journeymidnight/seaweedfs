@@ -21,7 +21,8 @@ func NewCollection(name string, volumeSizeLimit uint64) *Collection {
 }
 
 func (c *Collection) String() string {
-	return fmt.Sprintf("Name:%s, volumeSizeLimit:%d, storageType2VolumeLayout:%v", c.Name, c.volumeSizeLimit, c.storageType2VolumeLayout)
+	return fmt.Sprintf("Name:%s, volumeSizeLimit:%d, storageType2VolumeLayout:%v",
+		c.Name, c.volumeSizeLimit, c.storageType2VolumeLayout)
 }
 
 func (c *Collection) GetOrCreateVolumeLayout(rp *storage.ReplicaPlacement, ttl *needle.TTL) *VolumeLayout {

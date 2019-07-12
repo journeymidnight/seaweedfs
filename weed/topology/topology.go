@@ -128,7 +128,9 @@ func (t *Topology) PickForWrite(count uint64, option *VolumeGrowOption) (string,
 	return needle.NewFileId(*vid, fileId, rand.Uint32()).String(), count, datanodes.Head(), nil
 }
 
-func (t *Topology) GetVolumeLayout(collectionName string, rp *storage.ReplicaPlacement, ttl *needle.TTL) *VolumeLayout {
+func (t *Topology) GetVolumeLayout(collectionName string,
+	rp *storage.ReplicaPlacement, ttl *needle.TTL) *VolumeLayout {
+
 	return t.collectionMap.Get(collectionName, func() interface{} {
 		return NewCollection(collectionName, t.volumeSizeLimit)
 	}).(*Collection).GetOrCreateVolumeLayout(rp, ttl)

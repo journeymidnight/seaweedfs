@@ -154,9 +154,11 @@ func (ms *MasterServer) getVolumeGrowOption(r *http.Request) (*topology.VolumeGr
 	}
 	preallocate := ms.preallocateSize
 	if r.FormValue("preallocate") != "" {
-		preallocate, err = strconv.ParseInt(r.FormValue("preallocate"), 10, 64)
+		preallocate, err = strconv.ParseInt(
+			r.FormValue("preallocate"), 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse int64 preallocate = %s: %v", r.FormValue("preallocate"), err)
+			return nil, fmt.Errorf("Failed to parse int64 preallocate = %s: %v",
+				r.FormValue("preallocate"), err)
 		}
 	}
 	volumeGrowOption := &topology.VolumeGrowOption{
