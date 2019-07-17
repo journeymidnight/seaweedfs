@@ -107,7 +107,6 @@ func (v *Volume) Close() {
 }
 
 func (v *Volume) NeedToReplicate() bool {
-	// FIXME
 	return v.ReplicaPlacement.GetCopyCount() > 1
 }
 
@@ -131,7 +130,8 @@ func (v *Volume) expired(volumeSizeLimit uint64) bool {
 	if v.Ttl == nil || v.Ttl.Minutes() == 0 {
 		return false
 	}
-	glog.V(1).Infof("now:%v lastModified:%v", time.Now().Unix(), v.lastModifiedTsSeconds)
+	glog.V(1).Infof("now:%v lastModified:%v",
+		time.Now().Unix(), v.lastModifiedTsSeconds)
 	livedMinutes := (time.Now().Unix() - int64(v.lastModifiedTsSeconds)) / 60
 	glog.V(1).Infof("ttl:%v lived:%v", v.Ttl, livedMinutes)
 	if int64(v.Ttl.Minutes()) < livedMinutes {

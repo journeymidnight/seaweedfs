@@ -51,18 +51,22 @@ func WriteSortedEcxFile(baseFileName string) (e error) {
 
 // WriteEcFiles generates .ec01 ~ .ec14 files
 func WriteEcFiles(baseFileName string) error {
-	return generateEcFiles(baseFileName, 256*1024, ErasureCodingLargeBlockSize, ErasureCodingSmallBlockSize)
+	return generateEcFiles(baseFileName, 256*1024,
+		ErasureCodingLargeBlockSize, ErasureCodingSmallBlockSize)
 }
 
 func RebuildEcFiles(baseFileName string) ([]uint32, error) {
-	return generateMissingEcFiles(baseFileName, 256*1024, ErasureCodingLargeBlockSize, ErasureCodingSmallBlockSize)
+	return generateMissingEcFiles(baseFileName, 256*1024,
+		ErasureCodingLargeBlockSize, ErasureCodingSmallBlockSize)
 }
 
 func ToExt(ecIndex int) string {
 	return fmt.Sprintf(".ec%02d", ecIndex)
 }
 
-func generateEcFiles(baseFileName string, bufferSize int, largeBlockSize int64, smallBlockSize int64) error {
+func generateEcFiles(baseFileName string, bufferSize int,
+	largeBlockSize int64, smallBlockSize int64) error {
+
 	file, err := os.OpenFile(baseFileName+".lump", os.O_RDONLY, 0)
 	if err != nil {
 		return fmt.Errorf("failed to open dat file: %v", err)
@@ -73,7 +77,8 @@ func generateEcFiles(baseFileName string, bufferSize int, largeBlockSize int64, 
 	if err != nil {
 		return fmt.Errorf("failed to stat dat file: %v", err)
 	}
-	err = encodeDatFile(fi.Size(), err, baseFileName, bufferSize, largeBlockSize, file, smallBlockSize)
+	err = encodeDatFile(fi.Size(), err, baseFileName, bufferSize, largeBlockSize,
+		file, smallBlockSize)
 	if err != nil {
 		return fmt.Errorf("encodeDatFile: %v", err)
 	}
@@ -120,7 +125,8 @@ func encodeData(file *os.File, enc reedsolomon.Encoder, startOffset, blockSize i
 	}
 
 	for b := int64(0); b < batchCount; b++ {
-		err := encodeDataOneBatch(file, enc, startOffset+b*bufferSize, blockSize, buffers, outputs)
+		err := encodeDataOneBatch(file, enc, startOffset+b*bufferSize,
+			blockSize, buffers, outputs)
 		if err != nil {
 			return err
 		}
@@ -185,7 +191,8 @@ func encodeDataOneBatch(file *os.File, enc reedsolomon.Encoder, startOffset, blo
 	return nil
 }
 
-func encodeDatFile(remainingSize int64, err error, baseFileName string, bufferSize int, largeBlockSize int64, file *os.File, smallBlockSize int64) error {
+func encodeDatFile(remainingSize int64, err error, baseFileName string,
+	bufferSize int, largeBlockSize int64, file *os.File, smallBlockSize int64) error {
 
 	var processedSize int64
 
@@ -288,13 +295,14 @@ func readCompactMap(baseFileName string) (*needle_map.CompactMap, error) {
 	defer indexFile.Close()
 
 	cm := needle_map.NewCompactMap()
-	err = idx.WalkIndexFile(indexFile, func(key types.NeedleId, offset types.Offset, size uint32) error {
-		if !offset.IsZero() && size != types.TombstoneFileSize {
-			cm.Set(key, offset, size)
-		} else {
-			cm.Delete(key)
-		}
-		return nil
-	})
+	err = idx.WalkIndexFile(indexFile,
+		func(key types.NeedleId, offset types.Offset, size uint32) error {
+			if !offset.IsZero() && size != types.TombstoneFileSize {
+				cm.Set(key, offset, size)
+			} else {
+				cm.Delete(key)
+			}
+			return nil
+		})
 	return cm, err
 }

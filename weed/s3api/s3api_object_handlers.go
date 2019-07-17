@@ -155,7 +155,8 @@ func passThroughResponse(proxyResonse *http.Response, w http.ResponseWriter) {
 	io.Copy(w, proxyResonse.Body)
 }
 
-func (s3a *S3ApiServer) putToFiler(r *http.Request, uploadUrl string, dataReader io.ReadCloser) (etag string, code ErrorCode) {
+func (s3a *S3ApiServer) putToFiler(r *http.Request,
+	uploadUrl string, dataReader io.ReadCloser) (etag string, code ErrorCode) {
 
 	hash := md5.New()
 	var body io.Reader = io.TeeReader(dataReader, hash)
@@ -196,7 +197,8 @@ func (s3a *S3ApiServer) putToFiler(r *http.Request, uploadUrl string, dataReader
 	var ret weed_server.FilerPostResult
 	unmarshal_err := json.Unmarshal(resp_body, &ret)
 	if unmarshal_err != nil {
-		glog.Errorf("failing to read upload to %s : %v", uploadUrl, string(resp_body))
+		glog.Errorf("failing to read upload to %s : %v",
+			uploadUrl, string(resp_body))
 		return "", ErrInternalError
 	}
 	if ret.Error != "" {

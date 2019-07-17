@@ -9,8 +9,9 @@ import (
 )
 
 type Collection struct {
-	Name                     string
-	volumeSizeLimit          uint64
+	Name            string
+	volumeSizeLimit uint64
+	// replica placement(e.g. "000") + ttl(if exist, e.g. "1w") -> VolumeLayout
 	storageType2VolumeLayout *util.ConcurrentReadMap
 }
 

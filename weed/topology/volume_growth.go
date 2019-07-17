@@ -14,7 +14,8 @@ import (
 
 /*
 This package is created to resolve these replica placement issues:
-1. growth factor for each replica level, e.g., add 10 volumes for 1 copy, 20 volumes for 2 copies, 30 volumes for 3 copies
+1. growth factor for each replica level,
+   e.g., add 10 volumes for 1 copy, 20 volumes for 2 copies, 30 volumes for 3 copies
 2. in time of tight storage, how to reduce replica level
 3. optimizing for hot data on faster disk, cold data on cheaper storage,
 4. volume allocation for each bucket
@@ -58,14 +59,19 @@ func (vg *VolumeGrowth) findVolumeCount(copyCount int) (count int) {
 	return
 }
 
-func (vg *VolumeGrowth) AutomaticGrowByType(option *VolumeGrowOption, grpcDialOption grpc.DialOption, topo *Topology) (count int, err error) {
-	count, err = vg.GrowByCountAndType(grpcDialOption, vg.findVolumeCount(option.ReplicaPlacement.GetCopyCount()), option, topo)
+func (vg *VolumeGrowth) AutomaticGrowByType(option *VolumeGrowOption,
+	grpcDialOption grpc.DialOption, topo *Topology) (count int, err error) {
+
+	count, err = vg.GrowByCountAndType(grpcDialOption,
+		vg.findVolumeCount(option.ReplicaPlacement.GetCopyCount()), option, topo)
 	if count > 0 && count%option.ReplicaPlacement.GetCopyCount() == 0 {
 		return count, nil
 	}
 	return count, err
 }
-func (vg *VolumeGrowth) GrowByCountAndType(grpcDialOption grpc.DialOption, targetCount int, option *VolumeGrowOption, topo *Topology) (counter int, err error) {
+func (vg *VolumeGrowth) GrowByCountAndType(grpcDialOption grpc.DialOption,
+	targetCount int, option *VolumeGrowOption, topo *Topology) (counter int, err error) {
+
 	vg.accessLock.Lock()
 	defer vg.accessLock.Unlock()
 
@@ -79,7 +85,9 @@ func (vg *VolumeGrowth) GrowByCountAndType(grpcDialOption grpc.DialOption, targe
 	return
 }
 
-func (vg *VolumeGrowth) findAndGrow(grpcDialOption grpc.DialOption, topo *Topology, option *VolumeGrowOption) (int, error) {
+func (vg *VolumeGrowth) findAndGrow(grpcDialOption grpc.DialOption,
+	topo *Topology, option *VolumeGrowOption) (int, error) {
+
 	servers, e := vg.findEmptySlotsForOneVolume(topo, option)
 	if e != nil {
 		return 0, e
@@ -97,77 +105,93 @@ func (vg *VolumeGrowth) findAndGrow(grpcDialOption grpc.DialOption, topo *Topolo
 // 2.2 collect all racks that have rp.SameRackCount+1
 // 2.2 collect all data centers that have DiffRackCount+rp.SameRackCount+1
 // 2. find rest data nodes
-func (vg *VolumeGrowth) findEmptySlotsForOneVolume(topo *Topology, option *VolumeGrowOption) (servers []*DataNode, err error) {
+func (vg *VolumeGrowth) findEmptySlotsForOneVolume(topo *Topology,
+	option *VolumeGrowOption) (servers []*DataNode, err error) {
+
 	//find main datacenter and other data centers
 	rp := option.ReplicaPlacement
-	mainDataCenter, otherDataCenters, dc_err := topo.RandomlyPickNodes(rp.DiffDataCenterCount+1, func(node Node) error {
-		if option.DataCenter != "" && node.IsDataCenter() && node.Id() != NodeId(option.DataCenter) {
-			return fmt.Errorf("Not matching preferred data center:%s", option.DataCenter)
-		}
-		if len(node.Children()) < rp.DiffRackCount+1 {
-			return fmt.Errorf("Only has %d racks, not enough for %d.", len(node.Children()), rp.DiffRackCount+1)
-		}
-		if node.FreeSpace() < int64(rp.DiffRackCount+rp.SameRackCount+1) {
-			return fmt.Errorf("Free:%d < Expected:%d", node.FreeSpace(), rp.DiffRackCount+rp.SameRackCount+1)
-		}
-		possibleRacksCount := 0
-		for _, rack := range node.Children() {
-			possibleDataNodesCount := 0
-			for _, n := range rack.Children() {
-				if n.FreeSpace() >= 1 {
-					possibleDataNodesCount++
+	mainDataCenter, otherDataCenters, dc_err :=
+		topo.RandomlyPickNodes(rp.DiffDataCenterCount+1, func(node Node) error {
+			if option.DataCenter != "" &&
+				node.IsDataCenter() &&
+				node.Id() != NodeId(option.DataCenter) {
+				return fmt.Errorf("Not matching preferred data center:%s",
+					option.DataCenter)
+			}
+			if len(node.Children()) < rp.DiffRackCount+1 {
+				return fmt.Errorf("Only has %d racks, not enough for %d.",
+					len(node.Children()), rp.DiffRackCount+1)
+			}
+			if node.FreeSpace() < int64(rp.DiffRackCount+rp.SameRackCount+1) {
+				return fmt.Errorf("Free:%d < Expected:%d",
+					node.FreeSpace(), rp.DiffRackCount+rp.SameRackCount+1)
+			}
+			possibleRacksCount := 0
+			for _, rack := range node.Children() {
+				possibleDataNodesCount := 0
+				for _, n := range rack.Children() {
+					if n.FreeSpace() >= 1 {
+						possibleDataNodesCount++
+					}
+				}
+				if possibleDataNodesCount >= rp.SameRackCount+1 {
+					possibleRacksCount++
 				}
 			}
-			if possibleDataNodesCount >= rp.SameRackCount+1 {
-				possibleRacksCount++
+			if possibleRacksCount < rp.DiffRackCount+1 {
+				return fmt.Errorf("Only has %d racks with more than %d free data nodes, not enough for %d.",
+					possibleRacksCount, rp.SameRackCount+1, rp.DiffRackCount+1)
 			}
-		}
-		if possibleRacksCount < rp.DiffRackCount+1 {
-			return fmt.Errorf("Only has %d racks with more than %d free data nodes, not enough for %d.", possibleRacksCount, rp.SameRackCount+1, rp.DiffRackCount+1)
-		}
-		return nil
-	})
+			return nil
+		})
 	if dc_err != nil {
 		return nil, dc_err
 	}
 
 	//find main rack and other racks
-	mainRack, otherRacks, rackErr := mainDataCenter.(*DataCenter).RandomlyPickNodes(rp.DiffRackCount+1, func(node Node) error {
-		if option.Rack != "" && node.IsRack() && node.Id() != NodeId(option.Rack) {
-			return fmt.Errorf("Not matching preferred rack:%s", option.Rack)
-		}
-		if node.FreeSpace() < int64(rp.SameRackCount+1) {
-			return fmt.Errorf("Free:%d < Expected:%d", node.FreeSpace(), rp.SameRackCount+1)
-		}
-		if len(node.Children()) < rp.SameRackCount+1 {
-			// a bit faster way to test free racks
-			return fmt.Errorf("Only has %d data nodes, not enough for %d.", len(node.Children()), rp.SameRackCount+1)
-		}
-		possibleDataNodesCount := 0
-		for _, n := range node.Children() {
-			if n.FreeSpace() >= 1 {
-				possibleDataNodesCount++
-			}
-		}
-		if possibleDataNodesCount < rp.SameRackCount+1 {
-			return fmt.Errorf("Only has %d data nodes with a slot, not enough for %d.", possibleDataNodesCount, rp.SameRackCount+1)
-		}
-		return nil
-	})
+	mainRack, otherRacks, rackErr :=
+		mainDataCenter.(*DataCenter).RandomlyPickNodes(rp.DiffRackCount+1,
+			func(node Node) error {
+				if option.Rack != "" && node.IsRack() && node.Id() != NodeId(option.Rack) {
+					return fmt.Errorf("Not matching preferred rack:%s", option.Rack)
+				}
+				if node.FreeSpace() < int64(rp.SameRackCount+1) {
+					return fmt.Errorf("Free:%d < Expected:%d",
+						node.FreeSpace(), rp.SameRackCount+1)
+				}
+				if len(node.Children()) < rp.SameRackCount+1 {
+					// a bit faster way to test free racks
+					return fmt.Errorf("Only has %d data nodes, not enough for %d.",
+						len(node.Children()), rp.SameRackCount+1)
+				}
+				possibleDataNodesCount := 0
+				for _, n := range node.Children() {
+					if n.FreeSpace() >= 1 {
+						possibleDataNodesCount++
+					}
+				}
+				if possibleDataNodesCount < rp.SameRackCount+1 {
+					return fmt.Errorf(
+						"Only has %d data nodes with a slot, not enough for %d.",
+						possibleDataNodesCount, rp.SameRackCount+1)
+				}
+				return nil
+			})
 	if rackErr != nil {
 		return nil, rackErr
 	}
 
 	//find main rack and other racks
-	mainServer, otherServers, serverErr := mainRack.(*Rack).RandomlyPickNodes(rp.SameRackCount+1, func(node Node) error {
-		if option.DataNode != "" && node.IsDataNode() && node.Id() != NodeId(option.DataNode) {
-			return fmt.Errorf("Not matching preferred data node:%s", option.DataNode)
-		}
-		if node.FreeSpace() < 1 {
-			return fmt.Errorf("Free:%d < Expected:%d", node.FreeSpace(), 1)
-		}
-		return nil
-	})
+	mainServer, otherServers, serverErr :=
+		mainRack.(*Rack).RandomlyPickNodes(rp.SameRackCount+1, func(node Node) error {
+			if option.DataNode != "" && node.IsDataNode() && node.Id() != NodeId(option.DataNode) {
+				return fmt.Errorf("Not matching preferred data node:%s", option.DataNode)
+			}
+			if node.FreeSpace() < 1 {
+				return fmt.Errorf("Free:%d < Expected:%d", node.FreeSpace(), 1)
+			}
+			return nil
+		})
 	if serverErr != nil {
 		return nil, serverErr
 	}

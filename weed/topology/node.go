@@ -51,7 +51,7 @@ type NodeImpl struct {
 	parent            Node
 	sync.RWMutex      // lock children
 	children          map[NodeId]Node
-	maxVolumeId       needle.VolumeId
+	maxVolumeId       needle.VolumeId // max volume ID assigned
 
 	//for rack, data center, topology
 	nodeType string
@@ -59,7 +59,9 @@ type NodeImpl struct {
 }
 
 // the first node must satisfy filterFirstNodeFn(), the rest nodes must have one free slot
-func (n *NodeImpl) RandomlyPickNodes(numberOfNodes int, filterFirstNodeFn func(dn Node) error) (firstNode Node, restNodes []Node, err error) {
+func (n *NodeImpl) RandomlyPickNodes(numberOfNodes int,
+	filterFirstNodeFn func(dn Node) error) (firstNode Node, restNodes []Node, err error) {
+
 	candidates := make([]Node, 0, len(n.children))
 	var errs []string
 	n.RLock()
@@ -72,7 +74,8 @@ func (n *NodeImpl) RandomlyPickNodes(numberOfNodes int, filterFirstNodeFn func(d
 	}
 	n.RUnlock()
 	if len(candidates) == 0 {
-		return nil, nil, errors.New("No matching data node found! \n" + strings.Join(errs, "\n"))
+		return nil, nil,
+			errors.New("No matching data node found! \n" + strings.Join(errs, "\n"))
 	}
 	firstNode = candidates[rand.Intn(len(candidates))]
 	glog.V(2).Infoln(n.Id(), "picked main node:", firstNode.Id())
@@ -91,7 +94,8 @@ func (n *NodeImpl) RandomlyPickNodes(numberOfNodes int, filterFirstNodeFn func(d
 		candidates = append(candidates, node)
 	}
 	n.RUnlock()
-	glog.V(2).Infoln(n.Id(), "picking", numberOfNodes-1, "from rest", len(candidates), "node candidates")
+	glog.V(2).Infoln(n.Id(), "picking", numberOfNodes-1,
+		"from rest", len(candidates), "node candidates")
 	ret := len(restNodes) == 0
 	for k, node := range candidates {
 		if k < len(restNodes) {
@@ -107,7 +111,8 @@ func (n *NodeImpl) RandomlyPickNodes(numberOfNodes int, filterFirstNodeFn func(d
 		}
 	}
 	if !ret {
-		glog.V(2).Infoln(n.Id(), "failed to pick", numberOfNodes-1, "from rest", len(candidates), "node candidates")
+		glog.V(2).Infoln(n.Id(), "failed to pick", numberOfNodes-1,
+			"from rest", len(candidates), "node candidates")
 		err = errors.New("No enough data node found!")
 	}
 	return

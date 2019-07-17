@@ -34,7 +34,8 @@ Steps to apply erasure coding to .lump .idx files
 */
 
 // VolumeEcShardsGenerate generates the .ecx and .ec01 ~ .ec14 files
-func (vs *VolumeServer) VolumeEcShardsGenerate(ctx context.Context, req *volume_server_pb.VolumeEcShardsGenerateRequest) (*volume_server_pb.VolumeEcShardsGenerateResponse, error) {
+func (vs *VolumeServer) VolumeEcShardsGenerate(ctx context.Context,
+	req *volume_server_pb.VolumeEcShardsGenerateRequest) (*volume_server_pb.VolumeEcShardsGenerateResponse, error) {
 
 	v := vs.store.GetVolume(needle.VolumeId(req.VolumeId))
 	if v == nil {
@@ -223,7 +224,8 @@ func (vs *VolumeServer) VolumeEcShardsUnmount(ctx context.Context, req *volume_s
 	return &volume_server_pb.VolumeEcShardsUnmountResponse{}, nil
 }
 
-func (vs *VolumeServer) VolumeEcShardRead(req *volume_server_pb.VolumeEcShardReadRequest, stream volume_server_pb.VolumeServer_VolumeEcShardReadServer) error {
+func (vs *VolumeServer) VolumeEcShardRead(req *volume_server_pb.VolumeEcShardReadRequest,
+	stream volume_server_pb.VolumeServer_VolumeEcShardReadServer) error {
 
 	ecVolume, found := vs.store.FindEcVolume(needle.VolumeId(req.VolumeId))
 	if !found {
