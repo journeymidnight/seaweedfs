@@ -171,8 +171,8 @@ func (s *Store) CollectHeartbeat() *master_pb.Heartbeat {
 		location.Lock()
 		for _, v := range location.volumes {
 			usage := v.store.Usage()
-			if maxFileKey < NeedleId(usage.MaxIndex) {
-				maxFileKey = NeedleId(usage.MaxIndex)
+			if maxFileKey < NeedleId(usage.FileCounts) {
+				maxFileKey = NeedleId(usage.FileCounts)
 			}
 			if !v.expired(s.GetVolumeSizeLimit()) {
 				volumeMessages = append(volumeMessages, v.ToVolumeInformationMessage())
