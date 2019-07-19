@@ -48,11 +48,18 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 	lumpId := lump.FromU64(0, uint64(n.Id))
 	data := block.FromBytes(n.Data, block.Min())
 	lumpData := lump.NewLumpDataWithAb(data)
-	updated, err := v.store.Put(lumpId, lumpData)
+	_, err = v.store.Put(lumpId, lumpData)
 	if err != nil {
 		return 0, 0, false, err
 	}
-	isUnchanged = !updated
+	// The "update" returned by v.store.Put() means:
+	// - true: update operation
+	// - false: create operation
+	// "isUnchanged" means:
+	// - true: update operation and file checksum is same as before
+	// - false: create operation or update operation with different checksum
+	// so it's always false here, at least for now
+	isUnchanged = false
 
 	n.AppendAtNs = uint64(time.Now().UnixNano())
 	v.lastAppendAtNs = n.AppendAtNs
