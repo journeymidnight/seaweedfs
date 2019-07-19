@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/chrislusf/seaweedfs/weed/util"
 	"os"
 	"path"
 	"strconv"
@@ -55,8 +56,8 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 	var store *cannlys.Storage
 	if os.IsNotExist(err) {
 		store, e = cannlys.CreateCannylsStorage(v.FileName(),
-			10<<20,
-			0.1)
+			util.VolumeSizeLimitGB<<30,
+			0.1) // TODO tuning
 	} else {
 		store, e = cannlys.OpenCannylsStorage(v.FileName())
 	}
