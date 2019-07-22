@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/storage"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/storage"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 )
 
 func ReplicatedWrite(masterNode string, s *storage.Store,
@@ -36,7 +36,8 @@ func ReplicatedWrite(masterNode string, s *storage.Store,
 	if !needToReplicate {
 		needToReplicate = s.GetVolume(volumeId).NeedToReplicate()
 	}
-	fmt.Println("needToReplicate:", needToReplicate)
+	fmt.Printf("needToReplicate: %v, needle: %+v type: %s",
+		needToReplicate, n, r.FormValue("type"))
 	if needToReplicate { //send to other replica locations
 		if r.FormValue("type") != "replicate" {
 

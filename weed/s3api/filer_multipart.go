@@ -11,9 +11,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/chrislusf/seaweedfs/weed/filer2"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/filer2"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
 	"github.com/satori/go.uuid"
 )
 

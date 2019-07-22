@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/security"
 	"github.com/spf13/viper"
 
 	"fmt"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/s3api"
-	"github.com/chrislusf/seaweedfs/weed/util"
 	"github.com/gorilla/mux"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/s3api"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 )
 
 var (

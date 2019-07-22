@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/notification"
-	"github.com/chrislusf/seaweedfs/weed/util"
 	"github.com/golang/protobuf/proto"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/notification"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"google.golang.org/api/option"
 )
 

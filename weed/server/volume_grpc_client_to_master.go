@@ -5,14 +5,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/storage/erasure_coding"
+	"github.com/journeymidnight/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/storage/erasure_coding"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"golang.org/x/net/context"
 )
 

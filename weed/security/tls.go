@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"io/ioutil"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

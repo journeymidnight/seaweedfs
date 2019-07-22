@@ -3,8 +3,8 @@ package shell
 import (
 	"context"
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/filer2"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/filer2"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
 	"io"
 	"os"
 	"os/user"

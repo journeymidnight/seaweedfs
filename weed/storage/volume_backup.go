@@ -5,10 +5,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/idx"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	. "github.com/chrislusf/seaweedfs/weed/storage/types"
+	"github.com/journeymidnight/seaweedfs/weed/pb/volume_server_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/idx"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	. "github.com/journeymidnight/seaweedfs/weed/storage/types"
 	"google.golang.org/grpc"
 )
 

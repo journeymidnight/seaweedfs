@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/idx"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/storage/types"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/idx"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/storage/types"
 )
 
 var (

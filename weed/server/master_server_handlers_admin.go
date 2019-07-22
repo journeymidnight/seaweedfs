@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/topology"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/pb/volume_server_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/topology"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 )
 
 func (ms *MasterServer) collectionDeleteHandler(w http.ResponseWriter, r *http.Request) {

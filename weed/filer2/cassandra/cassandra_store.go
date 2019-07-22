@@ -3,10 +3,10 @@ package cassandra
 import (
 	"context"
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/filer2"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/util"
 	"github.com/gocql/gocql"
+	"github.com/journeymidnight/seaweedfs/weed/filer2"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 )
 
 func init() {

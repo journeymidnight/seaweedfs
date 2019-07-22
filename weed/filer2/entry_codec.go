@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
 	"github.com/golang/protobuf/proto"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
 )
 
 func (entry *Entry) EncodeAttributesAndChunks() ([]byte, error) {

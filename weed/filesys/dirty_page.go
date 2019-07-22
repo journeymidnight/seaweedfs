@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
-	"github.com/chrislusf/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/security"
 )
 
 type ContinuousDirtyPages struct {

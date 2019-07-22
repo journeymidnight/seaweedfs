@@ -3,7 +3,7 @@ package shell
 import (
 	"context"
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
 	"io"
 )
 

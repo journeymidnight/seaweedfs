@@ -10,15 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"golang.org/x/net/webdav"
 	"google.golang.org/grpc"
 
-	"github.com/chrislusf/seaweedfs/weed/filer2"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/filer2"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/security"
 	"github.com/spf13/viper"
 )
 

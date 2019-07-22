@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/security"
 	"github.com/spf13/viper"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
-	"github.com/chrislusf/seaweedfs/weed/server"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/server"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"google.golang.org/grpc/reflection"
 )
 

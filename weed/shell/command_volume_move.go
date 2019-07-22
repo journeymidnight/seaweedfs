@@ -7,9 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/pb/volume_server_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 	"google.golang.org/grpc"
 )
 

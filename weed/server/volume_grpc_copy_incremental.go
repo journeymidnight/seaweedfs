@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/pb/volume_server_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 )
 
 func (vs *VolumeServer) VolumeIncrementalCopy(req *volume_server_pb.VolumeIncrementalCopyRequest, stream volume_server_pb.VolumeServer_VolumeIncrementalCopyServer) error {

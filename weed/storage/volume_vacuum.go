@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/stats"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/stats"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"github.com/thesues/cannyls-go/lump"
 	"os"
 )

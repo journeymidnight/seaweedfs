@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/chrislusf/raft"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	"github.com/chrislusf/seaweedfs/weed/topology"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/topology"
 	"google.golang.org/grpc/peer"
 )
 

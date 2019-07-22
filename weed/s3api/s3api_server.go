@@ -1,13 +1,13 @@
 package s3api
 
 import (
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/cassandra"
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/leveldb"
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/memdb"
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/mysql"
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/postgres"
-	_ "github.com/chrislusf/seaweedfs/weed/filer2/redis"
 	"github.com/gorilla/mux"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/cassandra"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/leveldb"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/memdb"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/mysql"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/postgres"
+	_ "github.com/journeymidnight/seaweedfs/weed/filer2/redis"
 	"google.golang.org/grpc"
 	"net/http"
 )

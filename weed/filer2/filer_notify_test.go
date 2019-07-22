@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
 	"github.com/golang/protobuf/proto"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
 )
 
 func TestProtoMarshalText(t *testing.T) {

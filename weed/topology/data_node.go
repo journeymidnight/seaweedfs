@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/storage/erasure_coding"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/storage/erasure_coding"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 
 	"strconv"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/storage"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/storage"
 )
 
 type DataNode struct {

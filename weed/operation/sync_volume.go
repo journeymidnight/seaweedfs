@@ -2,7 +2,7 @@ package operation
 
 import (
 	"context"
-	"github.com/chrislusf/seaweedfs/weed/pb/volume_server_pb"
+	"github.com/journeymidnight/seaweedfs/weed/pb/volume_server_pb"
 	"google.golang.org/grpc"
 )
 

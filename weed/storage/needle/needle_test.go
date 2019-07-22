@@ -3,7 +3,7 @@ package needle
 import (
 	"testing"
 
-	"github.com/chrislusf/seaweedfs/weed/storage/types"
+	"github.com/journeymidnight/seaweedfs/weed/storage/types"
 )
 
 func TestParseKeyHash(t *testing.T) {

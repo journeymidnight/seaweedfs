@@ -2,16 +2,16 @@ package storage
 
 import (
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"os"
 	"path"
 	"strconv"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/stats"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/stats"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 	cannlys "github.com/thesues/cannyls-go/storage"
 )
 

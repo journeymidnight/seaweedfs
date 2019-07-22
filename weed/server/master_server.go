@@ -2,7 +2,7 @@ package weed_server
 
 import (
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/shell"
+	"github.com/journeymidnight/seaweedfs/weed/shell"
 	"google.golang.org/grpc"
 	"net/http"
 	"net/http/httputil"
@@ -15,13 +15,13 @@ import (
 	"time"
 
 	"github.com/chrislusf/raft"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/sequence"
-	"github.com/chrislusf/seaweedfs/weed/topology"
-	"github.com/chrislusf/seaweedfs/weed/util"
 	"github.com/gorilla/mux"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/sequence"
+	"github.com/journeymidnight/seaweedfs/weed/topology"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"github.com/spf13/viper"
 )
 

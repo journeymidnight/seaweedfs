@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/chrislusf/seaweedfs/weed/filer2"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	ui "github.com/chrislusf/seaweedfs/weed/server/filer_ui"
-	"github.com/chrislusf/seaweedfs/weed/stats"
+	"github.com/journeymidnight/seaweedfs/weed/filer2"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	ui "github.com/journeymidnight/seaweedfs/weed/server/filer_ui"
+	"github.com/journeymidnight/seaweedfs/weed/stats"
 )
 
 // listDirectoryHandler lists directories and folers under a directory

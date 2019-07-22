@@ -6,8 +6,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/chrislusf/seaweedfs/weed/stats"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/stats"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 )
 
 type ShardId uint8

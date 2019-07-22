@@ -8,7 +8,7 @@ ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.
 # Install SeaweedFS and Supercronic ( for cron job mode )
 # Tried to use curl only (curl -o /tmp/linux_amd64.tar.gz ...), however it turned out that the following tar command failed with "gzip: stdin: not in gzip format"
 RUN apk add --no-cache --virtual build-dependencies --update wget curl ca-certificates && \
-    wget -P /tmp https://github.com/$(curl -s -L https://github.com/chrislusf/seaweedfs/releases/latest | egrep -o 'chrislusf/seaweedfs/releases/download/.*/linux_amd64.tar.gz') && \
+    wget -P /tmp https://github.com/$(curl -s -L https://github.com/journeymidnight/seaweedfs/releases/latest | egrep -o 'chrislusf/seaweedfs/releases/download/.*/linux_amd64.tar.gz') && \
     tar -C /usr/bin/ -xzvf /tmp/linux_amd64.tar.gz && \
     curl -fsSLO "$SUPERCRONIC_URL" && \
     echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - && \

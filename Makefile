@@ -1,5 +1,5 @@
 BINARY = weed/weed
-package = github.com/chrislusf/seaweedfs/weed
+package = github.com/journeymidnight/seaweedfs/weed
 
 GO_FLAGS = #-v
 SOURCE_DIR = ./weed/

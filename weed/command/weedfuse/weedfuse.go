@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chrislusf/seaweedfs/weed/command"
-	"github.com/chrislusf/seaweedfs/weed/glog"
 	"github.com/jacobsa/daemonize"
+	"github.com/journeymidnight/seaweedfs/weed/command"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
 	"github.com/kardianos/osext"
 )
 

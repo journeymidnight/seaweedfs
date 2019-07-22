@@ -1,6 +1,6 @@
 package topology
 
-import "github.com/chrislusf/seaweedfs/weed/pb/master_pb"
+import "github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
 
 type DataCenter struct {
 	NodeImpl

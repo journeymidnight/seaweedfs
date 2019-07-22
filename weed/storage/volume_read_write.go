@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
-	. "github.com/chrislusf/seaweedfs/weed/storage/types"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	. "github.com/journeymidnight/seaweedfs/weed/storage/types"
 )
 
 var ErrorNotFound = errors.New("not found")

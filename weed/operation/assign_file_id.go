@@ -3,9 +3,9 @@ package operation
 import (
 	"context"
 	"fmt"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"google.golang.org/grpc"
 	"strings"
 )
@@ -48,30 +48,30 @@ func Assign(server string, grpcDialOption grpc.DialOption,
 		lastError = WithMasterServerClient(server, grpcDialOption,
 			func(masterClient master_pb.SeaweedClient) error {
 
-			req := &master_pb.AssignRequest{
-				Count:       primaryRequest.Count,
-				Replication: primaryRequest.Replication,
-				Collection:  primaryRequest.Collection,
-				Ttl:         primaryRequest.Ttl,
-				DataCenter:  primaryRequest.DataCenter,
-				Rack:        primaryRequest.Rack,
-				DataNode:    primaryRequest.DataNode,
-			}
-			resp, grpcErr := masterClient.Assign(context.Background(), req)
-			if grpcErr != nil {
-				return grpcErr
-			}
+				req := &master_pb.AssignRequest{
+					Count:       primaryRequest.Count,
+					Replication: primaryRequest.Replication,
+					Collection:  primaryRequest.Collection,
+					Ttl:         primaryRequest.Ttl,
+					DataCenter:  primaryRequest.DataCenter,
+					Rack:        primaryRequest.Rack,
+					DataNode:    primaryRequest.DataNode,
+				}
+				resp, grpcErr := masterClient.Assign(context.Background(), req)
+				if grpcErr != nil {
+					return grpcErr
+				}
 
-			ret.Count = resp.Count
-			ret.Fid = resp.Fid
-			ret.Url = resp.Url
-			ret.PublicUrl = resp.PublicUrl
-			ret.Error = resp.Error
-			ret.Auth = security.EncodedJwt(resp.Auth)
+				ret.Count = resp.Count
+				ret.Fid = resp.Fid
+				ret.Url = resp.Url
+				ret.PublicUrl = resp.PublicUrl
+				ret.Error = resp.Error
+				ret.Auth = security.EncodedJwt(resp.Auth)
 
-			return nil
+				return nil
 
-		})
+			})
 
 		if lastError != nil {
 			continue

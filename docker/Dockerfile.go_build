@@ -1,5 +1,5 @@
 FROM golang:latest
-RUN go get github.com/chrislusf/seaweedfs/weed
+RUN go get github.com/journeymidnight/seaweedfs/weed
 
 # volume server gprc port
 EXPOSE 18080
@@ -21,8 +21,8 @@ RUN mkdir -p /data/filerldb2
 VOLUME /data
 
 RUN mkdir -p /etc/seaweedfs
-RUN cp /go/src/github.com/chrislusf/seaweedfs/docker/filer.toml /etc/seaweedfs/filer.toml
-RUN cp /go/src/github.com/chrislusf/seaweedfs/docker/entrypoint.sh /entrypoint.sh
+RUN cp /go/src/github.com/journeymidnight/seaweedfs/docker/filer.toml /etc/seaweedfs/filer.toml
+RUN cp /go/src/github.com/journeymidnight/seaweedfs/docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 RUN cp /go/bin/weed /usr/bin/
 

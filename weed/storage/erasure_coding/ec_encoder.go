@@ -5,11 +5,11 @@ import (
 	"io"
 	"os"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/storage/idx"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle_map"
-	"github.com/chrislusf/seaweedfs/weed/storage/types"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/storage/idx"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle_map"
+	"github.com/journeymidnight/seaweedfs/weed/storage/types"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"github.com/klauspost/reedsolomon"
 )
 

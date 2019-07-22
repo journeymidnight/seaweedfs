@@ -11,16 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 	"google.golang.org/grpc"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/operation"
-	"github.com/chrislusf/seaweedfs/weed/stats"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/operation"
+	"github.com/journeymidnight/seaweedfs/weed/stats"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 
-	_ "github.com/chrislusf/seaweedfs/weed/statik"
 	"github.com/gorilla/mux"
+	_ "github.com/journeymidnight/seaweedfs/weed/statik"
 	statik "github.com/rakyll/statik/fs"
 )
 

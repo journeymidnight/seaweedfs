@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/chrislusf/seaweedfs/weed/storage/erasure_coding"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/storage/erasure_coding"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 )
 
 var (

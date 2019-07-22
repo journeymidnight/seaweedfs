@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/chrislusf/raft/protobuf"
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/security"
-	"github.com/chrislusf/seaweedfs/weed/server"
-	"github.com/chrislusf/seaweedfs/weed/util"
 	"github.com/gorilla/mux"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/security"
+	"github.com/journeymidnight/seaweedfs/weed/server"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
 )
@@ -112,7 +112,7 @@ func runMaster(cmd *Command, args []string) bool {
 		raftServer := weed_server.NewRaftServer(security.LoadClientTLS(viper.Sub("grpc"), "master"),
 			peers, myMasterAddress, *m.metaFolder, ms.Topo, *m.pulseSeconds)
 		if raftServer == nil {
-			glog.Fatalf("please verify %s is writable, see https://github.com/chrislusf/seaweedfs/issues/717", *m.metaFolder)
+			glog.Fatalf("please verify %s is writable, see https://github.com/journeymidnight/seaweedfs/issues/717", *m.metaFolder)
 		}
 		ms.SetRaftServer(raftServer)
 		r.HandleFunc("/cluster/status", raftServer.StatusHandler).Methods("GET")

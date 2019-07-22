@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/chrislusf/seaweedfs/weed/glog"
-	"github.com/chrislusf/seaweedfs/weed/server"
 	"github.com/gorilla/mux"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/server"
 )
 
 var (

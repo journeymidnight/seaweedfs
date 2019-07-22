@@ -1,10 +1,10 @@
 package topology
 
 import (
-	"github.com/chrislusf/seaweedfs/weed/pb/master_pb"
-	"github.com/chrislusf/seaweedfs/weed/sequence"
-	"github.com/chrislusf/seaweedfs/weed/storage"
-	"github.com/chrislusf/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
+	"github.com/journeymidnight/seaweedfs/weed/sequence"
+	"github.com/journeymidnight/seaweedfs/weed/storage"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
 
 	"testing"
 )

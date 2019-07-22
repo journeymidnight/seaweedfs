@@ -2,9 +2,9 @@ package sink
 
 import (
 	"context"
-	"github.com/chrislusf/seaweedfs/weed/pb/filer_pb"
-	"github.com/chrislusf/seaweedfs/weed/replication/source"
-	"github.com/chrislusf/seaweedfs/weed/util"
+	"github.com/journeymidnight/seaweedfs/weed/pb/filer_pb"
+	"github.com/journeymidnight/seaweedfs/weed/replication/source"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 )
 
 type ReplicationSink interface {
