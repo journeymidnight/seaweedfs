@@ -32,15 +32,7 @@ type Volume struct {
 }
 
 func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapKind NeedleMapType,
-	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, e error) {
-
-	// FIXME
-	if replicaPlacement == nil {
-		replicaPlacement = &ReplicaPlacement{0, 0, 0}
-	}
-	if ttl == nil {
-		ttl = &needle.TTL{}
-	}
+	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, err error) {
 
 	v = &Volume{
 		dir:        dirname,
@@ -52,22 +44,59 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 			version:          needle.CurrentVersion,
 		},
 	}
-	_, err := os.Stat(v.FileName())
-	var store *cannlys.Storage
-	if os.IsNotExist(err) {
-		store, e = cannlys.CreateCannylsStorage(v.FileName(),
-			util.VolumeSizeLimitGB<<30,
-			0.1) // TODO tuning
-	} else {
-		store, e = cannlys.OpenCannylsStorage(v.FileName())
+	_, err = os.Stat(v.FileName())
+	if os.IsNotExist(err) { // create new volume
+		err = v.InitializeDiskFiles()
+	} else { // load from disk
+		err = v.LoadDiskFiles()
 	}
-	if e != nil {
-		return nil, e
+	if err != nil {
+		return nil, err
 	}
-	v.store = store
-
 	return v, nil
 }
+
+func (v *Volume) InitializeDiskFiles() (err error) {
+	// create data file
+	store, err := cannlys.CreateCannylsStorage(v.FileName(),
+		util.VolumeSizeLimitGB<<30,
+		0.1) // TODO tuning
+	if err != nil {
+		return err
+	}
+	v.store = store
+	// create meta file
+	f, err := os.Create(v.MetaFileName())
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(v.SuperBlock.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *Volume) LoadDiskFiles() (err error) {
+	// load data file
+	store, err := cannlys.OpenCannylsStorage(v.FileName())
+	if err != nil {
+		return err
+	}
+	v.store = store
+	// load meta file
+	f, err := os.Open(v.MetaFileName())
+	if err != nil {
+		return err
+	}
+	superBlock, err := ReadSuperBlock(f)
+	if err != nil {
+		return err
+	}
+	v.SuperBlock = superBlock
+	return nil
+}
+
 func (v *Volume) String() string {
 	return fmt.Sprintf("Id:%v, dir:%s, Collection:%s, dataFile:%v, readOnly:%v",
 		v.Id, v.dir, v.Collection, v.FileName(), v.readOnly)
@@ -82,14 +111,24 @@ func VolumeFileName(dir string, collection string, id int) (fileName string) {
 	}
 	return
 }
+
 func (v *Volume) FileName() (fileName string) {
 	return VolumeFileName(v.dir, v.Collection, int(v.Id))
 }
 
+func (v *Volume) MetaFileName() string {
+	return v.FileName() + ".meta"
+}
+
 func (v *Volume) FileStat() (datSize uint64, idxSize uint64, modTime time.Time) {
-	// FIXME
 	usage := v.store.Usage()
-	return usage.CurrentFileSize, usage.JournalCapacity, time.Now()
+	fileInfo, err := os.Stat(v.MetaFileName())
+	if err != nil {
+		idxSize = 0
+	} else {
+		idxSize = uint64(fileInfo.Size())
+	}
+	return usage.CurrentFileSize, idxSize, time.Now()
 }
 
 func (v *Volume) IndexFileSize() uint64 {
