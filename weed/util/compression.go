@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/journeymidnight/seaweedfs/weed/glog"
-	"golang.org/x/tools/godoc/util"
 )
 
 func GzipData(input []byte) ([]byte, error) {
@@ -38,15 +37,8 @@ func UnGzipData(input []byte) ([]byte, error) {
 /*
 * Default more not to gzip since gzip can be done on client side.
  */func IsGzippable(ext, mtype string, data []byte) bool {
-
-	shouldBeZipped, iAmSure := IsGzippableFileType(ext, mtype)
-	if iAmSure {
-		return shouldBeZipped
-	}
-
-	isMostlyText := util.IsText(data)
-
-	return isMostlyText
+ 	// TODO determine if we have extra space for a flag in cannlys
+ 	return false
 }
 
 /*
