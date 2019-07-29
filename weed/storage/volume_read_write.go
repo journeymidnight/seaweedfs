@@ -64,15 +64,17 @@ func (v *Volume) handleQuery(q query) {
 	}
 
 	var result queryResult
-	lumpId := lump.FromU64(0, uint64(q.needle.Id))
 	switch q.queryType {
 	case getQuery:
+		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		q.needle.Data, result.err = v.store.Get(lumpId)
 	case putQuery:
+		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		data := block.FromBytes(q.needle.Data, block.Min())
 		lumpData := lump.NewLumpDataWithAb(data)
 		_, result.err = v.store.Put(lumpId, lumpData)
 	case deleteQuery:
+		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		_, result.err = v.store.Delete(lumpId)
 	case usageQuery:
 		result.result = v.store.Usage()
