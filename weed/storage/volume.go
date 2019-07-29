@@ -2,25 +2,26 @@ package storage
 
 import (
 	"fmt"
-	"github.com/journeymidnight/seaweedfs/weed/util"
-	"os"
-	"path"
-	"strconv"
-	"time"
-
 	"github.com/journeymidnight/seaweedfs/weed/glog"
 	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
 	"github.com/journeymidnight/seaweedfs/weed/stats"
 	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	cannlys "github.com/thesues/cannyls-go/storage"
+	"os"
+	"path"
+	"strconv"
+	"time"
 )
 
 type Volume struct {
-	Id         needle.VolumeId
-	dir        string
-	Collection string
-	readOnly   bool
-	store      *cannlys.Storage
+	Id           needle.VolumeId
+	dir          string
+	Collection   string
+	readOnly     bool
+	store        *cannlys.Storage
+	queryChannel chan query
+	closeSignal  chan interface{}
 
 	SuperBlock
 
@@ -35,9 +36,11 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, err error) {
 
 	v = &Volume{
-		dir:        dirname,
-		Collection: collection,
-		Id:         id,
+		dir:          dirname,
+		Collection:   collection,
+		Id:           id,
+		queryChannel: make(chan query, 1024), // TODO tuning length
+		closeSignal:  make(chan interface{}),
 		SuperBlock: SuperBlock{
 			ReplicaPlacement: replicaPlacement,
 			Ttl:              ttl,
@@ -53,6 +56,7 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 	if err != nil {
 		return nil, err
 	}
+	go v.workerThread()
 	return v, nil
 }
 
@@ -60,7 +64,7 @@ func (v *Volume) InitializeDiskFiles() (err error) {
 	// create data file
 	store, err := cannlys.CreateCannylsStorage(v.FileName(),
 		util.VolumeSizeLimitGB<<30,
-		0.1) // TODO tuning
+		0.1) // TODO tuning ratio
 	if err != nil {
 		return err
 	}
@@ -70,6 +74,7 @@ func (v *Volume) InitializeDiskFiles() (err error) {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	_, err = f.Write(v.SuperBlock.Bytes())
 	if err != nil {
 		return err
@@ -89,12 +94,38 @@ func (v *Volume) LoadDiskFiles() (err error) {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	superBlock, err := ReadSuperBlock(f)
 	if err != nil {
 		return err
 	}
 	v.SuperBlock = superBlock
 	return nil
+}
+
+type queryType int
+
+const (
+	getQuery queryType = iota
+	putQuery
+	deleteQuery
+)
+
+type query struct {
+	queryType queryType
+	needle    *needle.Needle
+	result    chan error
+}
+
+// cannlys-go only supports single-thread access
+func (v *Volume) workerThread() {
+	for {
+		q, ok := <-v.queryChannel
+		if !ok { // queue closed, which indicates store is closed
+			return
+		}
+		v.handleQuery(q)
+	}
 }
 
 func (v *Volume) String() string {
@@ -142,6 +173,8 @@ func (v *Volume) FileCount() uint64 {
 
 // Close cleanly shuts down this volume
 func (v *Volume) Close() {
+	close(v.closeSignal)
+	close(v.queryChannel)
 	v.store.Close()
 	stats.VolumeServerVolumeCounter.WithLabelValues(v.Collection, "volume").Dec()
 }

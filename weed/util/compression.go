@@ -37,8 +37,8 @@ func UnGzipData(input []byte) ([]byte, error) {
 /*
 * Default more not to gzip since gzip can be done on client side.
  */func IsGzippable(ext, mtype string, data []byte) bool {
- 	// TODO determine if we have extra space for a flag in cannlys
- 	return false
+	// TODO determine if we have extra space for a flag in cannlys
+	return false
 }
 
 /*

@@ -3,15 +3,14 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/journeymidnight/seaweedfs/weed/glog"
+	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
+	. "github.com/journeymidnight/seaweedfs/weed/storage/types"
 	"github.com/thesues/cannyls-go/block"
 	"github.com/thesues/cannyls-go/lump"
 	"io"
 	"os"
 	"time"
-
-	"github.com/journeymidnight/seaweedfs/weed/glog"
-	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
-	. "github.com/journeymidnight/seaweedfs/weed/storage/types"
 )
 
 var ErrorNotFound = errors.New("not found")
@@ -32,6 +31,31 @@ func (v *Volume) Destroy() (err error) {
 	return
 }
 
+func (v *Volume) handleQuery(q query) {
+	select {
+	case <-v.closeSignal:
+		q.result <- errors.New("volume store is shutting down")
+		return
+	default:
+	}
+
+	var err error
+	lumpId := lump.FromU64(0, uint64(q.needle.Id))
+	switch q.queryType {
+	case getQuery:
+		q.needle.Data, err = v.store.Get(lumpId)
+	case putQuery:
+		data := block.FromBytes(q.needle.Data, block.Min())
+		lumpData := lump.NewLumpDataWithAb(data)
+		_, err = v.store.Put(lumpId, lumpData)
+	case deleteQuery:
+		_, err = v.store.Delete(lumpId)
+	default:
+		panic("shouldn't reach here")
+	}
+	q.result <- err
+}
+
 func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUnchanged bool, err error) {
 	glog.V(4).Infof("writing needle %s",
 		needle.NewFileIdFromNeedle(v.Id, n).String())
@@ -44,11 +68,13 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 		n.SetHasTtl()
 		n.Ttl = v.Ttl
 	}
-	fmt.Println("writeNeedle", len(n.Data))
-	lumpId := lump.FromU64(0, uint64(n.Id))
-	data := block.FromBytes(n.Data, block.Min())
-	lumpData := lump.NewLumpDataWithAb(data)
-	_, err = v.store.Put(lumpId, lumpData)
+	q := query{
+		queryType: putQuery,
+		needle:    n,
+		result:    make(chan error),
+	}
+	v.queryChannel <- q
+	err = <-q.result
 	if err != nil {
 		return 0, 0, false, err
 	}
@@ -61,6 +87,8 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 	// so it's always false here, at least for now
 	isUnchanged = false
 
+	size = uint32(len(n.Data))
+
 	n.AppendAtNs = uint64(time.Now().UnixNano())
 	v.lastAppendAtNs = n.AppendAtNs
 	if v.lastModifiedTsSeconds < n.LastModified {
@@ -70,12 +98,18 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 }
 
 func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
-	glog.V(4).Infof("delete needle %s", needle.NewFileIdFromNeedle(v.Id, n).String())
+	glog.V(4).Infof("delete needle %s",
+		needle.NewFileIdFromNeedle(v.Id, n).String())
 	if v.readOnly {
 		return 0, fmt.Errorf("%s is read-only", v.FileName())
 	}
-	lumpId := lump.FromU64(0, uint64(n.Id))
-	_, err := v.store.Delete(lumpId)
+	q := query{
+		queryType: deleteQuery,
+		needle:    n,
+		result:    make(chan error),
+	}
+	v.queryChannel <- q
+	err := <-q.result
 	if err != nil {
 		return n.Size, err
 	}
@@ -85,8 +119,13 @@ func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
 // read fills in Needle content by looking up n.Id from NeedleMapper
 func (v *Volume) readNeedle(n *needle.Needle) (int, error) {
 	var err error
-	lumpId := lump.FromU64(0, uint64(n.Id))
-	n.Data, err = v.store.Get(lumpId)
+	q := query{
+		queryType: getQuery,
+		needle:    n,
+		result:    make(chan error),
+	}
+	v.queryChannel <- q
+	err = <-q.result
 	if err != nil {
 		return -1, err
 	}
