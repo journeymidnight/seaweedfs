@@ -103,20 +103,6 @@ func (v *Volume) LoadDiskFiles() (err error) {
 	return nil
 }
 
-type queryType int
-
-const (
-	getQuery queryType = iota
-	putQuery
-	deleteQuery
-)
-
-type query struct {
-	queryType queryType
-	needle    *needle.Needle
-	result    chan error
-}
-
 // cannlys-go only supports single-thread access
 func (v *Volume) workerThread() {
 	for {
@@ -152,7 +138,7 @@ func (v *Volume) MetaFileName() string {
 }
 
 func (v *Volume) FileStat() (datSize uint64, idxSize uint64, modTime time.Time) {
-	usage := v.store.Usage()
+	usage := v.getUsage()
 	fileInfo, err := os.Stat(v.MetaFileName())
 	if err != nil {
 		idxSize = 0
@@ -167,7 +153,7 @@ func (v *Volume) IndexFileSize() uint64 {
 }
 
 func (v *Volume) FileCount() uint64 {
-	usage := v.store.Usage()
+	usage := v.getUsage()
 	return usage.FileCounts
 }
 
@@ -184,7 +170,7 @@ func (v *Volume) NeedToReplicate() bool {
 }
 
 func (v *Volume) ContentSize() uint64 {
-	usage := v.store.Usage()
+	usage := v.getUsage()
 	return usage.CurrentFileSize
 }
 
@@ -230,11 +216,10 @@ func (v *Volume) expiredLongEnough(maxDelayMinutes uint32) bool {
 }
 
 func (v *Volume) ToVolumeInformationMessage() *master_pb.VolumeInformationMessage {
-	size, _, modTime := v.FileStat()
-	usage := v.store.Usage()
+	usage := v.getUsage()
 	return &master_pb.VolumeInformationMessage{
 		Id:               uint32(v.Id),
-		Size:             size,
+		Size:             usage.CurrentFileSize,
 		Collection:       v.Collection,
 		FileCount:        usage.FileCounts,
 		DeleteCount:      0, // FIXME
@@ -244,6 +229,6 @@ func (v *Volume) ToVolumeInformationMessage() *master_pb.VolumeInformationMessag
 		Version:          uint32(v.Version()),
 		Ttl:              v.Ttl.ToUint32(),
 		CompactRevision:  uint32(v.SuperBlock.CompactionRevision),
-		ModifiedAtSecond: modTime.Unix(),
+		ModifiedAtSecond: int64(v.lastModifiedTsSeconds),
 	}
 }

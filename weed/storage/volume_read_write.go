@@ -8,6 +8,7 @@ import (
 	. "github.com/journeymidnight/seaweedfs/weed/storage/types"
 	"github.com/thesues/cannyls-go/block"
 	"github.com/thesues/cannyls-go/lump"
+	"github.com/thesues/cannyls-go/storage"
 	"io"
 	"os"
 	"time"
@@ -31,29 +32,64 @@ func (v *Volume) Destroy() (err error) {
 	return
 }
 
+type queryType int
+
+const (
+	getQuery queryType = iota
+	putQuery
+	deleteQuery
+	usageQuery
+)
+
+type queryResult struct {
+	result interface{}
+	err    error
+}
+
+type query struct {
+	queryType     queryType
+	needle        *needle.Needle
+	resultChannel chan queryResult
+}
+
 func (v *Volume) handleQuery(q query) {
 	select {
 	case <-v.closeSignal:
-		q.result <- errors.New("volume store is shutting down")
+		result := queryResult{
+			err: errors.New("volume store is shutting down"),
+		}
+		q.resultChannel <- result
 		return
 	default:
 	}
 
-	var err error
+	var result queryResult
 	lumpId := lump.FromU64(0, uint64(q.needle.Id))
 	switch q.queryType {
 	case getQuery:
-		q.needle.Data, err = v.store.Get(lumpId)
+		q.needle.Data, result.err = v.store.Get(lumpId)
 	case putQuery:
 		data := block.FromBytes(q.needle.Data, block.Min())
 		lumpData := lump.NewLumpDataWithAb(data)
-		_, err = v.store.Put(lumpId, lumpData)
+		_, result.err = v.store.Put(lumpId, lumpData)
 	case deleteQuery:
-		_, err = v.store.Delete(lumpId)
+		_, result.err = v.store.Delete(lumpId)
+	case usageQuery:
+		result.result = v.store.Usage()
 	default:
 		panic("shouldn't reach here")
 	}
-	q.result <- err
+	q.resultChannel <- result
+}
+
+func (v *Volume) getUsage() storage.StorageUsage {
+	q := query{
+		queryType:     usageQuery,
+		resultChannel: make(chan queryResult),
+	}
+	v.queryChannel <- q
+	result := <-q.resultChannel
+	return result.result.(storage.StorageUsage)
 }
 
 func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUnchanged bool, err error) {
@@ -69,14 +105,14 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 		n.Ttl = v.Ttl
 	}
 	q := query{
-		queryType: putQuery,
-		needle:    n,
-		result:    make(chan error),
+		queryType:     putQuery,
+		needle:        n,
+		resultChannel: make(chan queryResult),
 	}
 	v.queryChannel <- q
-	err = <-q.result
-	if err != nil {
-		return 0, 0, false, err
+	result := <-q.resultChannel
+	if result.err != nil {
+		return 0, 0, false, result.err
 	}
 	// The "update" returned by v.store.Put() means:
 	// - true: update operation
@@ -104,30 +140,30 @@ func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
 		return 0, fmt.Errorf("%s is read-only", v.FileName())
 	}
 	q := query{
-		queryType: deleteQuery,
-		needle:    n,
-		result:    make(chan error),
+		queryType:     deleteQuery,
+		needle:        n,
+		resultChannel: make(chan queryResult),
 	}
 	v.queryChannel <- q
-	err := <-q.result
-	if err != nil {
-		return n.Size, err
+	result := <-q.resultChannel
+	if result.err != nil {
+		return n.Size, result.err
 	}
+	v.lastModifiedTsSeconds = uint64(time.Now().Unix())
 	return 0, nil
 }
 
 // read fills in Needle content by looking up n.Id from NeedleMapper
 func (v *Volume) readNeedle(n *needle.Needle) (int, error) {
-	var err error
 	q := query{
-		queryType: getQuery,
-		needle:    n,
-		result:    make(chan error),
+		queryType:     getQuery,
+		needle:        n,
+		resultChannel: make(chan queryResult),
 	}
 	v.queryChannel <- q
-	err = <-q.result
-	if err != nil {
-		return -1, err
+	result := <-q.resultChannel
+	if result.err != nil {
+		return -1, result.err
 	}
 	bytesRead := len(n.Data)
 	fmt.Println("readNeedle", len(n.Data))
