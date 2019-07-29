@@ -99,36 +99,6 @@ func (vs *VolumeServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := vs.store.ReadVolumeNeedle(volumeId, n)
-	if ok != nil {
-		m := make(map[string]uint32)
-		m["size"] = 0
-		writeJsonQuiet(w, r, http.StatusNotFound, m)
-		return
-	}
-
-	if n.Cookie != cookie {
-		glog.V(0).Infoln("delete", r.URL.Path, "with unmaching cookie from ", r.RemoteAddr, "agent", r.UserAgent())
-		writeJsonError(w, r, http.StatusBadRequest, errors.New("File Random Cookie does not match."))
-		return
-	}
-
-	count := int64(n.Size)
-
-	if n.IsChunkedManifest() {
-		chunkManifest, e := operation.LoadChunkManifest(n.Data, n.IsGzipped())
-		if e != nil {
-			writeJsonError(w, r, http.StatusInternalServerError, fmt.Errorf("Load chunks manifest error: %v", e))
-			return
-		}
-		// make sure all chunks had deleted before delete manifest
-		if e := chunkManifest.DeleteChunks(vs.GetMaster(), vs.grpcDialOption); e != nil {
-			writeJsonError(w, r, http.StatusInternalServerError, fmt.Errorf("Delete chunks error: %v", e))
-			return
-		}
-		count = chunkManifest.Size
-	}
-
 	n.LastModified = uint64(time.Now().Unix())
 	if len(r.FormValue("ts")) > 0 {
 		modifiedTime, err := strconv.ParseInt(r.FormValue("ts"), 10, 64)
@@ -139,14 +109,16 @@ func (vs *VolumeServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := topology.ReplicatedDelete(vs.GetMaster(), vs.store, volumeId, n, r)
 
-	writeDeleteResult(err, count, w, r)
+	writeDeleteResult(err, -1, w, r)
 
 }
 
 func writeDeleteResult(err error, count int64, w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		m := make(map[string]int64)
-		m["size"] = count
+		if count >= 0 {
+			m["size"] = count
+		}
 		writeJsonQuiet(w, r, http.StatusAccepted, m)
 	} else {
 		writeJsonError(w, r, http.StatusInternalServerError, fmt.Errorf("Deletion Failed: %v", err))
