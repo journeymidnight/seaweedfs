@@ -168,7 +168,6 @@ func (v *Volume) readNeedle(n *needle.Needle) (int, error) {
 		return -1, result.err
 	}
 	bytesRead := len(n.Data)
-	fmt.Println("readNeedle", len(n.Data))
 	if !n.HasTtl() {
 		return bytesRead, nil
 	}

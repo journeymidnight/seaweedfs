@@ -221,7 +221,6 @@ func (s *Store) Write(i needle.VolumeId, n *needle.Needle) (size uint32, isUncha
 			return
 		}
 		size = uint32(len(n.Data))
-		fmt.Println("needle size:", size, "len data:", len(n.Data))
 		if MaxPossibleVolumeSize >= v.ContentSize()+uint64(size) {
 			_, size, isUnchanged, err = v.writeNeedle(n)
 		} else {
