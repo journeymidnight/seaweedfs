@@ -107,18 +107,15 @@ func (vs *VolumeServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, err := topology.ReplicatedDelete(vs.GetMaster(), vs.store, volumeId, n, r)
+	releaseSize, err := topology.ReplicatedDelete(vs.GetMaster(), vs.store, volumeId, n, r)
 
-	writeDeleteResult(err, -1, w, r)
-
+	writeDeleteResult(err, int64(releaseSize), w, r)
 }
 
 func writeDeleteResult(err error, count int64, w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		m := make(map[string]int64)
-		if count >= 0 {
-			m["size"] = count
-		}
+		m["size"] = count
 		writeJsonQuiet(w, r, http.StatusAccepted, m)
 	} else {
 		writeJsonError(w, r, http.StatusInternalServerError, fmt.Errorf("Deletion Failed: %v", err))

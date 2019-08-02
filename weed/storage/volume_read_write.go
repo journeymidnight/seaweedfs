@@ -75,7 +75,9 @@ func (v *Volume) handleQuery(q query) {
 		_, result.err = v.store.Put(lumpId, lumpData)
 	case deleteQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
-		_, result.err = v.store.Delete(lumpId)
+		var releaseSize uint16
+		_, releaseSize, result.err = v.store.Delete(lumpId)
+		q.needle.Size = uint32(releaseSize)
 	case usageQuery:
 		result.result = v.store.Usage()
 	default:
@@ -152,7 +154,7 @@ func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
 		return n.Size, result.err
 	}
 	v.lastModifiedTsSeconds = uint64(time.Now().Unix())
-	return 0, nil
+	return n.Size, nil
 }
 
 // read fills in Needle content by looking up n.Id from NeedleMapper
