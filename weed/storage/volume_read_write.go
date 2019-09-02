@@ -75,9 +75,7 @@ func (v *Volume) handleQuery(q query) {
 		_, result.err = v.store.Put(lumpId, lumpData)
 	case deleteQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
-		var releaseSize uint16
-		_, releaseSize, result.err = v.store.Delete(lumpId)
-		q.needle.Size = uint32(releaseSize)
+		_, q.needle.Size, result.err = v.store.Delete(lumpId)
 	case usageQuery:
 		result.result = v.store.Usage()
 	default:
