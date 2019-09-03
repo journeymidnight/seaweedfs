@@ -260,12 +260,15 @@ func (s *Store) Delete(i needle.VolumeId, n *needle.Needle) (uint32, error) {
 	return 0, nil
 }
 
-func (s *Store) ReadVolumeNeedle(i needle.VolumeId, n *needle.Needle) (int, error) {
+func (s *Store) ReadVolumeNeedle(i needle.VolumeId, n *needle.Needle,
+	startOffset int64, length uint64) (int, error) {
+
 	if v := s.findVolume(i); v != nil {
-		return v.readNeedle(n)
+		return v.readNeedle(n, startOffset, length)
 	}
 	return 0, fmt.Errorf("volume %d not found", i)
 }
+
 func (s *Store) GetVolume(i needle.VolumeId) *Volume {
 	return s.findVolume(i)
 }

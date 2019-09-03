@@ -31,7 +31,8 @@ func (vs *VolumeServer) BatchDelete(ctx context.Context, req *volume_server_pb.B
 		n.ParsePath(id_cookie)
 
 		cookie := n.Cookie
-		if _, err := vs.store.ReadVolumeNeedle(volumeId, n); err != nil {
+		// FIXME should use something like HEAD
+		if _, err := vs.store.ReadVolumeNeedle(volumeId, n, 0, 1); err != nil {
 			resp.Results = append(resp.Results, &volume_server_pb.DeleteResult{
 				FileId: fid,
 				Status: http.StatusNotFound,

@@ -50,6 +50,8 @@ type query struct {
 	queryType     queryType
 	needle        *needle.Needle
 	resultChannel chan queryResult
+	startOffset   int64
+	length        uint64
 }
 
 func (v *Volume) handleQuery(q query) {
@@ -67,7 +69,12 @@ func (v *Volume) handleQuery(q query) {
 	switch q.queryType {
 	case getQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
-		q.needle.Data, result.err = v.store.Get(lumpId)
+		if q.length == 0 { // length == 0 means whole object
+			q.needle.Data, result.err = v.store.Get(lumpId)
+		} else {
+			q.needle.Data, result.err = v.store.GetWithOffset(lumpId,
+				uint32(q.startOffset), uint32(q.length))
+		}
 	case putQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		data := block.FromBytes(q.needle.Data, block.Min())
@@ -156,11 +163,15 @@ func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
 }
 
 // read fills in Needle content by looking up n.Id from NeedleMapper
-func (v *Volume) readNeedle(n *needle.Needle) (int, error) {
+func (v *Volume) readNeedle(n *needle.Needle,
+	startOffset int64, length uint64) (int, error) {
+
 	q := query{
 		queryType:     getQuery,
 		needle:        n,
 		resultChannel: make(chan queryResult),
+		startOffset:   startOffset,
+		length:        length,
 	}
 	v.queryChannel <- q
 	result := <-q.resultChannel

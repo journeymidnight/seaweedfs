@@ -30,7 +30,10 @@ func (vs *VolumeServer) GetOrHeadHandler(w http.ResponseWriter, r *http.Request)
 
 	stats.VolumeServerRequestCounter.WithLabelValues("get").Inc()
 	start := time.Now()
-	defer func() { stats.VolumeServerRequestHistogram.WithLabelValues("get").Observe(time.Since(start).Seconds()) }()
+	defer func() {
+		stats.VolumeServerRequestHistogram.WithLabelValues("get").
+			Observe(time.Since(start).Seconds())
+	}()
 
 	n := new(needle.Needle)
 	vid, fid, filename, ext, _ := parseURLPath(r.URL.Path)
@@ -63,7 +66,8 @@ func (vs *VolumeServer) GetOrHeadHandler(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		lookupResult, err := operation.Lookup(vs.GetMaster(), volumeId.String())
-		glog.V(2).Infoln("volume", volumeId, "found on", lookupResult, "error", err)
+		glog.V(2).Infoln("volume", volumeId, "found on",
+			lookupResult, "error", err)
 		if err == nil && len(lookupResult.Locations) > 0 {
 			u, _ := url.Parse(util.NormalizeUrl(lookupResult.Locations[0].PublicUrl))
 			u.Path = r.URL.Path
@@ -82,26 +86,39 @@ func (vs *VolumeServer) GetOrHeadHandler(w http.ResponseWriter, r *http.Request)
 	}
 	cookie := n.Cookie
 	var count int
+
+	offsetString := r.Header.Get("X-Start-Offset")
+	lengthString := r.Header.Get("X-Length-Required")
+	var offset int64
+	var length uint64
+	if len(offsetString) != 0 && len(lengthString) != 0 {
+		offset, _ = strconv.ParseInt(offsetString, 10, 64)
+		length, _ = strconv.ParseUint(lengthString, 10, 64)
+	}
 	if hasVolume {
-		count, err = vs.store.ReadVolumeNeedle(volumeId, n)
+		count, err = vs.store.ReadVolumeNeedle(volumeId, n, offset, length)
 	} else if hasEcVolume {
 		count, err = vs.store.ReadEcShardNeedle(context.Background(), volumeId, n)
 	}
 	glog.V(4).Infoln("read bytes", count, "error", err)
 	if err != nil || count < 0 {
-		glog.V(0).Infof("read %s isNormalVolume %v error: %v", r.URL.Path, hasVolume, err)
+		glog.V(0).Infof("read %s isNormalVolume %v error: %v",
+			r.URL.Path, hasVolume, err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if n.Cookie != cookie {
-		glog.V(0).Infof("request %s with cookie:%x expected:%x from %s agent %s", r.URL.Path, cookie, n.Cookie, r.RemoteAddr, r.UserAgent())
+		glog.V(0).Infof("request %s with cookie:%x expected:%x from %s agent %s",
+			r.URL.Path, cookie, n.Cookie, r.RemoteAddr, r.UserAgent())
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if n.LastModified != 0 {
-		w.Header().Set("Last-Modified", time.Unix(int64(n.LastModified), 0).UTC().Format(http.TimeFormat))
+		w.Header().Set("Last-Modified",
+			time.Unix(int64(n.LastModified), 0).UTC().Format(http.TimeFormat))
 		if r.Header.Get("If-Modified-Since") != "" {
-			if t, parseError := time.Parse(http.TimeFormat, r.Header.Get("If-Modified-Since")); parseError == nil {
+			if t, parseError := time.Parse(http.TimeFormat,
+				r.Header.Get("If-Modified-Since")); parseError == nil {
 				if t.Unix() >= int64(n.LastModified) {
 					w.WriteHeader(http.StatusNotModified)
 					return
@@ -154,7 +171,7 @@ func (vs *VolumeServer) GetOrHeadHandler(w http.ResponseWriter, r *http.Request)
 				w.Header().Set("Content-Encoding", "gzip")
 			} else {
 				if n.Data, err = util.UnGzipData(n.Data); err != nil {
-					glog.V(0).Infoln("ungzip error:", err, r.URL.Path)
+					glog.V(0).Infoln("unzip error:", err, r.URL.Path)
 				}
 			}
 		}
@@ -259,8 +276,8 @@ func writeResponseContent(filename, mimeType string, rs io.ReadSeeker, w http.Re
 		return e
 	}
 
-	//the rest is dealing with partial content request
-	//mostly copy from src/pkg/net/http/fs.go
+	// the rest is dealing with partial content request
+	// mostly copy from src/pkg/net/http/fs.go
 	ranges, err := parseRange(rangeReq, totalSize)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusRequestedRangeNotSatisfiable)
