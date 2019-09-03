@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/chrislusf/seaweedfs/weed/stats"
@@ -30,11 +31,11 @@ func (v *Volume) load(alsoLoadIndex bool, createDatIfMissing bool, needleMapKind
 			return fmt.Errorf("cannot read Volume Data file %s.dat", fileName)
 		}
 		if canWrite {
-			v.dataFile, e = os.OpenFile(fileName+".dat", os.O_RDWR|os.O_CREATE, 0644)
+			v.dataFile, e = os.OpenFile(fileName+".dat", os.O_RDWR|os.O_CREATE|syscall.O_DIRECT, 0644)
 			v.lastModifiedTsSeconds = uint64(modifiedTime.Unix())
 		} else {
 			glog.V(0).Infoln("opening " + fileName + ".dat in READONLY mode")
-			v.dataFile, e = os.Open(fileName + ".dat")
+			v.dataFile, e = os.OpenFile(fileName+".dat", os.O_RDONLY|syscall.O_DIRECT, 0)
 			v.readOnly = true
 		}
 		if fileSize >= _SuperBlockSize {
@@ -65,12 +66,12 @@ func (v *Volume) load(alsoLoadIndex bool, createDatIfMissing bool, needleMapKind
 		var indexFile *os.File
 		if v.readOnly {
 			glog.V(1).Infoln("open to read file", fileName+".idx")
-			if indexFile, e = os.OpenFile(fileName+".idx", os.O_RDONLY, 0644); e != nil {
+			if indexFile, e = os.OpenFile(fileName+".idx", os.O_RDONLY|syscall.O_DIRECT, 0644); e != nil {
 				return fmt.Errorf("cannot read Volume Index %s.idx: %v", fileName, e)
 			}
 		} else {
 			glog.V(1).Infoln("open to write file", fileName+".idx")
-			if indexFile, e = os.OpenFile(fileName+".idx", os.O_RDWR|os.O_CREATE, 0644); e != nil {
+			if indexFile, e = os.OpenFile(fileName+".idx", os.O_RDWR|os.O_CREATE|syscall.O_DIRECT, 0644); e != nil {
 				return fmt.Errorf("cannot write Volume Index %s.idx: %v", fileName, e)
 			}
 		}
