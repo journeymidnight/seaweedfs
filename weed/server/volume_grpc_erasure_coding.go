@@ -22,7 +22,7 @@ import (
 
 /*
 
-Steps to apply erasure coding to .lump .idx files
+Steps to apply erasure coding to .lusf .idx files
 0. ensure the volume is readonly
 1. client call VolumeEcShardsGenerate to generate the .ecx and .ec01~.ec14 files
 2. client ask master for possible servers to hold the ec files, at least 4 servers

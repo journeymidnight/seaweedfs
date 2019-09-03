@@ -1,11 +1,5 @@
 package command
 
-import (
-	"github.com/journeymidnight/seaweedfs/weed/glog"
-	"github.com/journeymidnight/seaweedfs/weed/storage"
-	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
-)
-
 func init() {
 	cmdCompact.Run = runCompact // break init cycle
 }
@@ -29,28 +23,5 @@ var (
 )
 
 func runCompact(cmd *Command, args []string) bool {
-
-	if *compactVolumeId == -1 {
-		return false
-	}
-
-	preallocate := *compactVolumePreallocate * (1 << 20)
-
-	vid := needle.VolumeId(*compactVolumeId)
-	v, err := storage.NewVolume(*compactVolumePath, *compactVolumeCollection, vid,
-		storage.NeedleMapInMemory, nil, nil, preallocate)
-	if err != nil {
-		glog.Fatalf("Load Volume [ERROR] %s\n", err)
-	}
-	if *compactMethod == 0 {
-		if err = v.Compact(preallocate, 0); err != nil {
-			glog.Fatalf("Compact Volume [ERROR] %s\n", err)
-		}
-	} else {
-		if err = v.Compact2(); err != nil {
-			glog.Fatalf("Compact Volume [ERROR] %s\n", err)
-		}
-	}
-
-	return true
+	panic("not implemented for cannyls")
 }

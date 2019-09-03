@@ -1468,7 +1468,7 @@ type VolumeServerClient interface {
 	VolumeUnmount(ctx context.Context, in *VolumeUnmountRequest, opts ...grpc.CallOption) (*VolumeUnmountResponse, error)
 	VolumeDelete(ctx context.Context, in *VolumeDeleteRequest, opts ...grpc.CallOption) (*VolumeDeleteResponse, error)
 	VolumeMarkReadonly(ctx context.Context, in *VolumeMarkReadonlyRequest, opts ...grpc.CallOption) (*VolumeMarkReadonlyResponse, error)
-	// copy the .idx .lump files, and mount this volume
+	// copy the .idx .lusf files, and mount this volume
 	VolumeCopy(ctx context.Context, in *VolumeCopyRequest, opts ...grpc.CallOption) (*VolumeCopyResponse, error)
 	ReadVolumeFileStatus(ctx context.Context, in *ReadVolumeFileStatusRequest, opts ...grpc.CallOption) (*ReadVolumeFileStatusResponse, error)
 	CopyFile(ctx context.Context, in *CopyFileRequest, opts ...grpc.CallOption) (VolumeServer_CopyFileClient, error)
@@ -1836,7 +1836,7 @@ type VolumeServerServer interface {
 	VolumeUnmount(context.Context, *VolumeUnmountRequest) (*VolumeUnmountResponse, error)
 	VolumeDelete(context.Context, *VolumeDeleteRequest) (*VolumeDeleteResponse, error)
 	VolumeMarkReadonly(context.Context, *VolumeMarkReadonlyRequest) (*VolumeMarkReadonlyResponse, error)
-	// copy the .idx .lump files, and mount this volume
+	// copy the .idx .lusf files, and mount this volume
 	VolumeCopy(context.Context, *VolumeCopyRequest) (*VolumeCopyResponse, error)
 	ReadVolumeFileStatus(context.Context, *ReadVolumeFileStatusRequest) (*ReadVolumeFileStatusResponse, error)
 	CopyFile(*CopyFileRequest, VolumeServer_CopyFileServer) error

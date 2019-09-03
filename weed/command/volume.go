@@ -44,6 +44,8 @@ type VolumeServerOptions struct {
 	cpuProfile            *string
 	memProfile            *string
 	compactionMBPerSecond *int
+	lusfFileSizeGB        *uint64
+	lusfJournalRatio      *float64
 }
 
 func init() {
@@ -64,6 +66,8 @@ func init() {
 	v.cpuProfile = cmdVolume.Flag.String("cpuprofile", "", "cpu profile output file")
 	v.memProfile = cmdVolume.Flag.String("memprofile", "", "memory profile output file")
 	v.compactionMBPerSecond = cmdVolume.Flag.Int("compactionMBps", 0, "limit background compaction or copying speed in mega bytes per second")
+	v.lusfFileSizeGB = cmdVolume.Flag.Uint64("lusfFileSizeGB", 512, "cannyls file capacity")
+	v.lusfJournalRatio = cmdVolume.Flag.Float64("lusfJournalRatio", 0.1, "cannyls file journal region ratio, proportion to file size")
 }
 
 var cmdVolume = &Command{
@@ -156,6 +160,7 @@ func (v VolumeServerOptions) startVolumeServer(volumeFolders, maxVolumeCounts, v
 		v.whiteList,
 		*v.fixJpgOrientation, *v.readRedirect,
 		*v.compactionMBPerSecond,
+		*v.lusfFileSizeGB, *v.lusfJournalRatio,
 	)
 
 	listeningAddress := *v.bindIp + ":" + strconv.Itoa(*v.port)

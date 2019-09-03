@@ -91,7 +91,7 @@ func runMaster(cmd *Command, args []string) bool {
 		masterWhiteList = strings.Split(*m.whiteList, ",")
 	}
 	if *m.volumeSizeLimitMB > util.VolumeSizeLimitGB*1000 {
-		glog.Fatalf("volumeSizeLimitMB should be smaller than 30000")
+		glog.Fatalf("volumeSizeLimitMB should be smaller than", util.VolumeSizeLimitGB*1000)
 	}
 
 	r := mux.NewRouter()

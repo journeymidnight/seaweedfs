@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/journeymidnight/seaweedfs/weed/util"
 	"sync/atomic"
 
 	"github.com/journeymidnight/seaweedfs/weed/glog"
@@ -35,15 +36,32 @@ type Store struct {
 	DeletedVolumesChan  chan master_pb.VolumeShortInformationMessage
 	NewEcShardsChan     chan master_pb.VolumeEcShardInformationMessage
 	DeletedEcShardsChan chan master_pb.VolumeEcShardInformationMessage
+	// config for new cannyls files
+	lusfFileSizeGB   uint64
+	lusfJournalRatio float64
 }
 
 func (s *Store) String() (str string) {
-	str = fmt.Sprintf("Ip:%s, Port:%d, PublicUrl:%s, dataCenter:%s, rack:%s, connected:%v, volumeSizeLimit:%d", s.Ip, s.Port, s.PublicUrl, s.dataCenter, s.rack, s.connected, s.GetVolumeSizeLimit())
+	str = fmt.Sprintf("Ip:%s, Port:%d, PublicUrl:%s, dataCenter:%s, rack:%s, "+
+		"connected:%v, volumeSizeLimit:%d, lusfFileSizeGB:%d, lusfJournalRatio:%f",
+		s.Ip, s.Port, s.PublicUrl, s.dataCenter, s.rack, s.connected,
+		s.GetVolumeSizeLimit(), s.lusfFileSizeGB, s.lusfJournalRatio)
 	return
 }
 
-func NewStore(grpcDialOption grpc.DialOption, port int, ip, publicUrl string, dirnames []string, maxVolumeCounts []int, needleMapKind NeedleMapType) (s *Store) {
-	s = &Store{grpcDialOption: grpcDialOption, Port: port, Ip: ip, PublicUrl: publicUrl, NeedleMapType: needleMapKind}
+func NewStore(grpcDialOption grpc.DialOption, port int, ip, publicUrl string,
+	dirnames []string, maxVolumeCounts []int, needleMapKind NeedleMapType,
+	lusfFileSizeGB uint64, lusfJournalRatio float64) (s *Store) {
+
+	s = &Store{
+		grpcDialOption:   grpcDialOption,
+		Port:             port,
+		Ip:               ip,
+		PublicUrl:        publicUrl,
+		NeedleMapType:    needleMapKind,
+		lusfFileSizeGB:   lusfFileSizeGB,
+		lusfJournalRatio: lusfJournalRatio,
+	}
 	s.Locations = make([]*DiskLocation, 0)
 	for i := 0; i < len(dirnames); i++ {
 		location := NewDiskLocation(dirnames[i], maxVolumeCounts[i])
@@ -109,7 +127,7 @@ func (s *Store) addVolume(vid needle.VolumeId, collection string, needleMapKind 
 		glog.V(0).Infof("In dir %s adds volume:%v collection:%s replicaPlacement:%v ttl:%v",
 			location.Directory, vid, collection, replicaPlacement, ttl)
 		if volume, err := NewVolume(location.Directory, collection, vid,
-			needleMapKind, replicaPlacement, ttl, preallocate); err == nil {
+			replicaPlacement, ttl, s.lusfFileSizeGB, s.lusfJournalRatio); err == nil {
 			location.SetVolume(vid, volume)
 			glog.V(0).Infof("add volume %d", vid)
 			s.NewVolumesChan <- master_pb.VolumeShortInformationMessage{
@@ -221,13 +239,13 @@ func (s *Store) Write(i needle.VolumeId, n *needle.Needle) (size uint32, isUncha
 			return
 		}
 		size = uint32(len(n.Data))
-		if MaxPossibleVolumeSize >= v.ContentSize()+uint64(size) {
-			_, size, isUnchanged, err = v.writeNeedle(n)
-		} else {
+		if v.ContentSize()+uint64(size) > (util.VolumeSizeLimitGB << 30) {
 			err = fmt.Errorf(
 				"Volume Size Limit %d Exceeded! Current size is %d",
 				s.GetVolumeSizeLimit(), v.ContentSize())
+			return
 		}
+		_, size, isUnchanged, err = v.writeNeedle(n)
 		return
 	}
 	glog.V(0).Infoln("volume", i, "not found!")

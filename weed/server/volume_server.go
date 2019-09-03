@@ -41,6 +41,8 @@ func NewVolumeServer(adminMux, publicMux *http.ServeMux, ip string,
 	fixJpgOrientation bool,
 	readRedirect bool,
 	compactionMBPerSecond int,
+	lusfFileSizeGB uint64,
+	lusfJournalRatio float64,
 ) *VolumeServer {
 
 	v := viper.GetViper()
@@ -64,7 +66,17 @@ func NewVolumeServer(adminMux, publicMux *http.ServeMux, ip string,
 		compactionBytePerSecond: int64(compactionMBPerSecond) * 1024 * 1024,
 	}
 	vs.SeedMasterNodes = masterNodes
-	vs.store = storage.NewStore(vs.grpcDialOption, port, ip, publicUrl, folders, maxCounts, vs.needleMapKind)
+	vs.store = storage.NewStore(
+		vs.grpcDialOption,
+		port,
+		ip,
+		publicUrl,
+		folders,
+		maxCounts,
+		vs.needleMapKind,
+		lusfFileSizeGB,
+		lusfJournalRatio,
+	)
 
 	vs.guard = security.NewGuard(whiteList, signingKey, expiresAfterSec, readSigningKey, readExpiresAfterSec)
 

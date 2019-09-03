@@ -3,6 +3,6 @@
 package util
 
 const (
-	sizeLimit         = "30GB"
-	VolumeSizeLimitGB = 30
+	sizeLimit         = "8000GB"
+	VolumeSizeLimitGB = 8000
 )

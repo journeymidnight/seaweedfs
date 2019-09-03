@@ -33,8 +33,8 @@ func NewDiskLocation(dir string, maxVolumeCount int) *DiskLocation {
 
 func (l *DiskLocation) volumeIdFromPath(dir os.FileInfo) (needle.VolumeId, string, error) {
 	name := dir.Name()
-	if !dir.IsDir() && strings.HasSuffix(name, ".lump") {
-		base := name[:len(name)-len(".lump")]
+	if !dir.IsDir() && strings.HasSuffix(name, ".lusf") {
+		base := name[:len(name)-len(".lusf")]
 		collection, volumeId, err := parseCollectionVolumeId(base)
 		return volumeId, collection, err
 	}
@@ -53,15 +53,15 @@ func parseCollectionVolumeId(base string) (collection string, vid needle.VolumeI
 
 func (l *DiskLocation) loadExistingVolume(fileInfo os.FileInfo, needleMapKind NeedleMapType) {
 	name := fileInfo.Name()
-	if !fileInfo.IsDir() && strings.HasSuffix(name, ".lump") {
+	if !fileInfo.IsDir() && strings.HasSuffix(name, ".lusf") {
 		vid, collection, err := l.volumeIdFromPath(fileInfo)
 		if err == nil {
 			l.RLock()
 			_, found := l.volumes[vid]
 			l.RUnlock()
 			if !found {
-				if v, e := NewVolume(l.Directory, collection, vid, needleMapKind,
-					nil, nil, 0); e == nil {
+				if v, e := NewVolume(l.Directory, collection, vid, nil,
+					nil, 0, 0); e == nil {
 					l.Lock()
 					l.volumes[vid] = v
 					l.Unlock()

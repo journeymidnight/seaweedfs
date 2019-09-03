@@ -67,7 +67,7 @@ func ToExt(ecIndex int) string {
 func generateEcFiles(baseFileName string, bufferSize int,
 	largeBlockSize int64, smallBlockSize int64) error {
 
-	file, err := os.OpenFile(baseFileName+".lump", os.O_RDONLY, 0)
+	file, err := os.OpenFile(baseFileName+".lusf", os.O_RDONLY, 0)
 	if err != nil {
 		return fmt.Errorf("failed to open dat file: %v", err)
 	}

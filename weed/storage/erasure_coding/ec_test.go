@@ -46,7 +46,7 @@ func validateFiles(baseFileName string) error {
 		return fmt.Errorf("readCompactMap: %v", err)
 	}
 
-	datFile, err := os.OpenFile(baseFileName+".lump", os.O_RDONLY, 0)
+	datFile, err := os.OpenFile(baseFileName+".lusf", os.O_RDONLY, 0)
 	if err != nil {
 		return fmt.Errorf("failed to open dat file: %v", err)
 	}

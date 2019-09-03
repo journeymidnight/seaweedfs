@@ -23,7 +23,7 @@ func (v *Volume) Destroy() (err error) {
 		return
 	}
 	v.Close()
-	os.Remove(v.FileName() + ".lump")
+	os.Remove(v.FileName() + ".lusf")
 	os.Remove(v.FileName() + ".idx")
 	os.Remove(v.FileName() + ".cpd")
 	os.Remove(v.FileName() + ".cpx")

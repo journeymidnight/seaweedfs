@@ -20,7 +20,7 @@ import (
 
 const BufferSizeLimit = 1024 * 1024 * 2
 
-// VolumeCopy copy the .idx .lump files, and mount the volume
+// VolumeCopy copy the .idx .lusf files, and mount the volume
 func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.VolumeCopyRequest) (*volume_server_pb.VolumeCopyResponse, error) {
 
 	v := vs.store.GetVolume(needle.VolumeId(req.VolumeId))
@@ -34,8 +34,8 @@ func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.Vo
 	}
 
 	// the master will not start compaction for read-only volumes, so it is safe to just copy files directly
-	// copy .lump and .idx files
-	//   read .idx .lump file size and timestamp
+	// copy .lusf and .idx files
+	//   read .idx .lusf file size and timestamp
 	//   send .idx file
 	//   send .dat file
 	//   confirm size and timestamp
@@ -61,7 +61,7 @@ func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.Vo
 
 		if err := vs.doCopyFile(ctx, client, false, req.Collection, req.VolumeId,
 			volFileInfoResp.CompactionRevision, volFileInfoResp.DatFileSize, volumeFileName,
-			".lump", false); err != nil {
+			".lusf", false); err != nil {
 			return err
 		}
 
@@ -69,7 +69,7 @@ func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.Vo
 	})
 
 	idxFileName = volumeFileName + ".idx"
-	datFileName = volumeFileName + ".lump"
+	datFileName = volumeFileName + ".lusf"
 
 	if err != nil && volumeFileName != "" {
 		if idxFileName != "" {

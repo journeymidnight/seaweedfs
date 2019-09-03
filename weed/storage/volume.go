@@ -6,7 +6,6 @@ import (
 	"github.com/journeymidnight/seaweedfs/weed/pb/master_pb"
 	"github.com/journeymidnight/seaweedfs/weed/stats"
 	"github.com/journeymidnight/seaweedfs/weed/storage/needle"
-	"github.com/journeymidnight/seaweedfs/weed/util"
 	cannlys "github.com/thesues/cannyls-go/storage"
 	"os"
 	"path"
@@ -32,8 +31,10 @@ type Volume struct {
 	lastCompactRevision    uint16
 }
 
-func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapKind NeedleMapType,
-	replicaPlacement *ReplicaPlacement, ttl *needle.TTL, preallocate int64) (v *Volume, err error) {
+func NewVolume(dirname string, collection string, id needle.VolumeId,
+	replicaPlacement *ReplicaPlacement, ttl *needle.TTL,
+	// lusfFileSizeGB, lusfJournalRatio only necessary for new volumes
+	lusfFileSizeGB uint64, lusfJournalRatio float64) (v *Volume, err error) {
 
 	v = &Volume{
 		dir:          dirname,
@@ -49,7 +50,7 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 	}
 	_, err = os.Stat(v.FileName())
 	if os.IsNotExist(err) { // create new volume
-		err = v.InitializeDiskFiles()
+		err = v.InitializeDiskFiles(lusfFileSizeGB, lusfJournalRatio)
 	} else { // load from disk
 		err = v.LoadDiskFiles()
 	}
@@ -60,11 +61,10 @@ func NewVolume(dirname string, collection string, id needle.VolumeId, needleMapK
 	return v, nil
 }
 
-func (v *Volume) InitializeDiskFiles() (err error) {
+func (v *Volume) InitializeDiskFiles(fileSizeGB uint64, journalRatio float64) (err error) {
 	// create data file
 	store, err := cannlys.CreateCannylsStorage(v.FileName(),
-		util.VolumeSizeLimitGB<<30,
-		0.1) // TODO tuning ratio
+		fileSizeGB<<30, journalRatio) // TODO tuning ratio
 	if err != nil {
 		return err
 	}
@@ -122,9 +122,9 @@ func (v *Volume) String() string {
 func VolumeFileName(dir string, collection string, id int) (fileName string) {
 	idString := strconv.Itoa(id)
 	if collection == "" {
-		fileName = path.Join(dir, idString+".lump")
+		fileName = path.Join(dir, idString+".lusf")
 	} else {
-		fileName = path.Join(dir, collection+"_"+idString+".lump")
+		fileName = path.Join(dir, collection+"_"+idString+".lusf")
 	}
 	return
 }
