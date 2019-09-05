@@ -89,14 +89,14 @@ func (vs *VolumeServer) GetOrHeadHandler(w http.ResponseWriter, r *http.Request)
 
 	offsetString := r.Header.Get("X-Start-Offset")
 	lengthString := r.Header.Get("X-Length-Required")
-	var offset int64
-	var length uint64
+	var offset, length uint64
 	if len(offsetString) != 0 && len(lengthString) != 0 {
-		offset, _ = strconv.ParseInt(offsetString, 10, 64)
-		length, _ = strconv.ParseUint(lengthString, 10, 64)
+		offset, _ = strconv.ParseUint(offsetString, 10, 32)
+		length, _ = strconv.ParseUint(lengthString, 10, 32)
 	}
 	if hasVolume {
-		count, err = vs.store.ReadVolumeNeedle(volumeId, n, offset, length)
+		count, err = vs.store.ReadVolumeNeedle(volumeId, n,
+			uint32(offset), uint32(length))
 	} else if hasEcVolume {
 		count, err = vs.store.ReadEcShardNeedle(context.Background(), volumeId, n)
 	}

@@ -20,12 +20,20 @@ import (
 
 func ReplicatedWrite(masterNode string, s *storage.Store,
 	volumeId needle.VolumeId, n *needle.Needle,
-	r *http.Request) (size uint32, isUnchanged bool, err error) {
+	r *http.Request) (err error) {
 
 	//check JWT
 	jwt := security.GetJwt(r)
 
-	size, isUnchanged, err = s.Write(volumeId, n)
+	var startOffset, reservation uint64
+	if s := r.Header.Get("X-Start-Offset"); len(s) > 0 {
+		startOffset, _ = strconv.ParseUint(s, 10, 32)
+	}
+	if s := r.Header.Get("X-Reservation"); len(s) > 0 {
+		reservation, _ = strconv.ParseUint(s, 10, 32)
+	}
+
+	err = s.Write(volumeId, n, uint32(startOffset), uint32(reservation))
 	if err != nil {
 		err = fmt.Errorf("failed to write to local disk: %v", err)
 		return
@@ -36,7 +44,7 @@ func ReplicatedWrite(masterNode string, s *storage.Store,
 	if !needToReplicate {
 		needToReplicate = s.GetVolume(volumeId).NeedToReplicate()
 	}
-	if needToReplicate { //send to other replica locations
+	if needToReplicate { // send to other replica locations
 		if r.FormValue("type") != "replicate" {
 
 			if err = distributedOperation(masterNode, s, volumeId, func(location operation.Location) error {
@@ -68,13 +76,14 @@ func ReplicatedWrite(masterNode string, s *storage.Store,
 						pairMap[needle.PairNamePrefix+k] = v
 					}
 				}
+				pairMap["X-Start-Offset"] = r.Header.Get("X-Start-Offset")
+				pairMap["X-Reservation"] = r.Header.Get("X-Reservation")
 
 				_, err := operation.Upload(u.String(),
 					string(n.Name), bytes.NewReader(n.Data), n.IsGzipped(), string(n.Mime),
 					pairMap, jwt)
 				return err
 			}); err != nil {
-				size = 0
 				err = fmt.Errorf("failed to write to replicas for volume %d: %v", volumeId, err)
 			}
 		}

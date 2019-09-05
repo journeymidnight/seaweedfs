@@ -50,8 +50,9 @@ type query struct {
 	queryType     queryType
 	needle        *needle.Needle
 	resultChannel chan queryResult
-	startOffset   int64
-	length        uint64
+	startOffset   uint32
+	length        uint32
+	reservation   uint32
 }
 
 func (v *Volume) handleQuery(q query) {
@@ -69,17 +70,22 @@ func (v *Volume) handleQuery(q query) {
 	switch q.queryType {
 	case getQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
-		if q.length == 0 { // length == 0 means whole object
-			q.needle.Data, result.err = v.store.Get(lumpId)
-		} else {
+		if q.startOffset != 0 || q.length != 0 {
 			q.needle.Data, result.err = v.store.GetWithOffset(lumpId,
-				uint32(q.startOffset), uint32(q.length))
+				q.startOffset, q.length)
+		} else {
+			q.needle.Data, result.err = v.store.Get(lumpId)
 		}
 	case putQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		data := block.FromBytes(q.needle.Data, block.Min())
 		lumpData := lump.NewLumpDataWithAb(data)
-		_, result.err = v.store.Put(lumpId, lumpData)
+		if q.startOffset != 0 || q.reservation != 0 {
+			result.err = v.store.PutWithOffset(lumpId, lumpData,
+				q.startOffset, q.reservation)
+		} else {
+			_, result.err = v.store.Put(lumpId, lumpData)
+		}
 	case deleteQuery:
 		lumpId := lump.FromU64(0, uint64(q.needle.Id))
 		_, q.needle.Size, result.err = v.store.Delete(lumpId)
@@ -101,7 +107,9 @@ func (v *Volume) getUsage() storage.StorageUsage {
 	return result.result.(storage.StorageUsage)
 }
 
-func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUnchanged bool, err error) {
+func (v *Volume) writeNeedle(n *needle.Needle,
+	startOffset, reservation uint32) (err error) {
+
 	glog.V(4).Infof("writing needle %s",
 		needle.NewFileIdFromNeedle(v.Id, n).String())
 	if v.readOnly {
@@ -117,23 +125,14 @@ func (v *Volume) writeNeedle(n *needle.Needle) (offset uint64, size uint32, isUn
 		queryType:     putQuery,
 		needle:        n,
 		resultChannel: make(chan queryResult),
+		startOffset:   startOffset,
+		reservation:   reservation,
 	}
 	v.queryChannel <- q
 	result := <-q.resultChannel
 	if result.err != nil {
-		return 0, 0, false, result.err
+		return result.err
 	}
-	// The "update" returned by v.store.Put() means:
-	// - true: update operation
-	// - false: create operation
-	// "isUnchanged" means:
-	// - true: update operation and file checksum is same as before
-	// - false: create operation or update operation with different checksum
-	// so it's always false here, at least for now
-	isUnchanged = false
-
-	size = uint32(len(n.Data))
-
 	n.AppendAtNs = uint64(time.Now().UnixNano())
 	v.lastAppendAtNs = n.AppendAtNs
 	if v.lastModifiedTsSeconds < n.LastModified {
@@ -164,7 +163,7 @@ func (v *Volume) deleteNeedle(n *needle.Needle) (uint32, error) {
 
 // read fills in Needle content by looking up n.Id from NeedleMapper
 func (v *Volume) readNeedle(n *needle.Needle,
-	startOffset int64, length uint64) (int, error) {
+	startOffset uint32, length uint32) (int, error) {
 
 	q := query{
 		queryType:     getQuery,

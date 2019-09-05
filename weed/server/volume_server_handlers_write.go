@@ -50,12 +50,9 @@ func (vs *VolumeServer) PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ret := operation.UploadResult{}
-	_, isUnchanged, writeError := topology.ReplicatedWrite(
+	writeError := topology.ReplicatedWrite(
 		vs.GetMaster(), vs.store, volumeId, needle, r)
 	httpStatus := http.StatusCreated
-	if isUnchanged {
-		httpStatus = http.StatusNotModified
-	}
 	if writeError != nil {
 		httpStatus = http.StatusInternalServerError
 		ret.Error = writeError.Error()

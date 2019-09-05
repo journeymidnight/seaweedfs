@@ -232,20 +232,22 @@ func (s *Store) Close() {
 	}
 }
 
-func (s *Store) Write(i needle.VolumeId, n *needle.Needle) (size uint32, isUnchanged bool, err error) {
+func (s *Store) Write(i needle.VolumeId, n *needle.Needle,
+	startOffset, reservation uint32) (err error) {
+
 	if v := s.findVolume(i); v != nil {
 		if v.readOnly {
 			err = fmt.Errorf("volume %d is read only", i)
 			return
 		}
-		size = uint32(len(n.Data))
+		size := uint32(len(n.Data))
 		if v.ContentSize()+uint64(size) > (util.VolumeSizeLimitGB << 30) {
 			err = fmt.Errorf(
 				"Volume Size Limit %d Exceeded! Current size is %d",
 				s.GetVolumeSizeLimit(), v.ContentSize())
 			return
 		}
-		_, size, isUnchanged, err = v.writeNeedle(n)
+		err = v.writeNeedle(n, startOffset, reservation)
 		return
 	}
 	glog.V(0).Infoln("volume", i, "not found!")
@@ -261,7 +263,7 @@ func (s *Store) Delete(i needle.VolumeId, n *needle.Needle) (uint32, error) {
 }
 
 func (s *Store) ReadVolumeNeedle(i needle.VolumeId, n *needle.Needle,
-	startOffset int64, length uint64) (int, error) {
+	startOffset uint32, length uint32) (int, error) {
 
 	if v := s.findVolume(i); v != nil {
 		return v.readNeedle(n, startOffset, length)
