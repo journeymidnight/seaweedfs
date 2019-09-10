@@ -116,6 +116,11 @@ func (v *Volume) writeNeedle(n *needle.Needle,
 		err = fmt.Errorf("%s is read-only", v.FileName())
 		return
 	}
+	if uint64(len(n.Data)) > v.GetFreeBytes() {
+		// FIXME currently waste at most 30M, which is acceptable, but still
+		v.readOnly = true
+		return fmt.Errorf("volume is full")
+	}
 
 	if n.Ttl == needle.EMPTY_TTL && v.Ttl != needle.EMPTY_TTL {
 		n.SetHasTtl()

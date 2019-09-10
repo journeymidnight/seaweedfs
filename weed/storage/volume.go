@@ -174,6 +174,11 @@ func (v *Volume) ContentSize() uint64 {
 	return usage.CurrentFileSize
 }
 
+func (v *Volume) GetFreeBytes() uint64 {
+	usage := v.getUsage()
+	return usage.FreeBytes
+}
+
 // volume is expired if modified time + volume ttl < now
 // except when volume is empty
 // or when the volume does not have a ttl

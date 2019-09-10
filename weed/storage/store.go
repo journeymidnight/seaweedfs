@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"github.com/journeymidnight/seaweedfs/weed/util"
 	"sync/atomic"
 
 	"github.com/journeymidnight/seaweedfs/weed/glog"
@@ -238,13 +237,6 @@ func (s *Store) Write(i needle.VolumeId, n *needle.Needle,
 	if v := s.findVolume(i); v != nil {
 		if v.readOnly {
 			err = fmt.Errorf("volume %d is read only", i)
-			return
-		}
-		size := uint32(len(n.Data))
-		if v.ContentSize()+uint64(size) > (util.VolumeSizeLimitGB << 30) {
-			err = fmt.Errorf(
-				"Volume Size Limit %d Exceeded! Current size is %d",
-				s.GetVolumeSizeLimit(), v.ContentSize())
 			return
 		}
 		err = v.writeNeedle(n, startOffset, reservation)
