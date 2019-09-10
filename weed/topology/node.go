@@ -271,6 +271,9 @@ func (n *NodeImpl) CollectDeadNodeAndFullVolumes(freshThreshHold int64, volumeSi
 					//fmt.Println("volume",v.Id,"size",v.Size,">",volumeSizeLimit)
 					n.GetTopology().chanFullVolumes <- v
 				}
+				if v.ReadOnly {
+					n.GetTopology().chanFullVolumes <- v
+				}
 			}
 		}
 	} else {
