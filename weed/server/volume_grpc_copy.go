@@ -20,8 +20,9 @@ import (
 
 const BufferSizeLimit = 1024 * 1024 * 2
 
-// VolumeCopy copy the .idx .lusf files, and mount the volume
-func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.VolumeCopyRequest) (*volume_server_pb.VolumeCopyResponse, error) {
+// VolumeCopy copy the .meta .lusf files, and mount the volume
+func (vs *VolumeServer) VolumeCopy(ctx context.Context,
+	req *volume_server_pb.VolumeCopyRequest) (*volume_server_pb.VolumeCopyResponse, error) {
 
 	v := vs.store.GetVolume(needle.VolumeId(req.VolumeId))
 	if v != nil {
@@ -33,15 +34,17 @@ func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.Vo
 		return nil, fmt.Errorf("no space left")
 	}
 
-	// the master will not start compaction for read-only volumes, so it is safe to just copy files directly
-	// copy .lusf and .idx files
-	//   read .idx .lusf file size and timestamp
-	//   send .idx file
-	//   send .dat file
+	// the master will not start compaction for read-only volumes,
+	// so it is safe to just copy files directly
+	// copy .lusf and .meta files
+	//   read .meta .lusf file size and timestamp
+	//   send .meta file
+	//   send .lusf file
 	//   confirm size and timestamp
 	var volFileInfoResp *volume_server_pb.ReadVolumeFileStatusResponse
 	var volumeFileName, idxFileName, datFileName string
-	err := operation.WithVolumeServerClient(req.SourceDataNode, vs.grpcDialOption, func(client volume_server_pb.VolumeServerClient) error {
+	err := operation.WithVolumeServerClient(req.SourceDataNode, vs.grpcDialOption,
+		func(client volume_server_pb.VolumeServerClient) error {
 		var err error
 		volFileInfoResp, err = client.ReadVolumeFileStatus(ctx,
 			&volume_server_pb.ReadVolumeFileStatusRequest{
@@ -51,25 +54,30 @@ func (vs *VolumeServer) VolumeCopy(ctx context.Context, req *volume_server_pb.Vo
 			return fmt.Errorf("read volume file status failed, %v", err)
 		}
 
-		volumeFileName = storage.VolumeFileName(location.Directory, volFileInfoResp.Collection, int(req.VolumeId))
+		volumeFileName = storage.VolumeFileName(location.Directory,
+			volFileInfoResp.Collection, int(req.VolumeId))
 
 		// println("source:", volFileInfoResp.String())
 		// copy ecx file
-		if err := vs.doCopyFile(ctx, client, false, req.Collection, req.VolumeId, volFileInfoResp.CompactionRevision, volFileInfoResp.IdxFileSize, volumeFileName, ".idx", false); err != nil {
+		if err := vs.doCopyFile(ctx, client, false, req.Collection,
+			req.VolumeId, volFileInfoResp.CompactionRevision,
+			volFileInfoResp.IdxFileSize, volumeFileName,
+			".meta", false); err != nil {
 			return err
 		}
 
-		if err := vs.doCopyFile(ctx, client, false, req.Collection, req.VolumeId,
-			volFileInfoResp.CompactionRevision, volFileInfoResp.DatFileSize, volumeFileName,
-			".lusf", false); err != nil {
+		if err := vs.doCopyFile(ctx, client, false, req.Collection,
+			req.VolumeId, volFileInfoResp.CompactionRevision,
+			volFileInfoResp.DatFileSize, volumeFileName,
+			"", false); err != nil {
 			return err
 		}
 
 		return nil
 	})
 
-	idxFileName = volumeFileName + ".idx"
-	datFileName = volumeFileName + ".lusf"
+	idxFileName = volumeFileName + ".meta"
+	datFileName = volumeFileName
 
 	if err != nil && volumeFileName != "" {
 		if idxFileName != "" {
