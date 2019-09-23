@@ -1,0 +1,14 @@
+FROM golang:buster
+USER root
+WORKDIR /work
+RUN apt update && apt -y install build-essential
+RUN git clone https://github.com/journeymidnight/seaweedfs.git --branch yig2 --depth 10
+RUN git clone https://github.com/thesues/cannyls-go.git
+RUN cd cannyls-go && make build
+RUN cd seaweedfs && echo "replace github.com/thesues/go-judy v0.1.0 => ../cannyls-go/go-judy" >> go.mod
+RUN cd seaweedfs/weed && GOPROXY=https://goproxy.cn go build
+
+EXPOSE 10001
+EXPOSE 30001
+COPY master_and_volume.sh /master_and_volume.sh
+ENTRYPOINT ["/master_and_volume.sh"]
