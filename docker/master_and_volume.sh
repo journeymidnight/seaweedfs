@@ -12,9 +12,12 @@ $WEED_BIN master -mdir=/seaweed_master \
 
 sleep 5
 
-mkdir -p /seaweed_volume
-$WEED_BIN volume -dir=/seaweed_volume \
-	-mserver=127.0.0.1:10001 \
-	-ip=$SEAWEED_IP -ip.bind=0.0.0.0 -port=30001 \
-	-lusfFileSizeGB 1 -max 3 \
-	&> /volume.log
+for i in {1..3}
+do
+  mkdir -p /seaweed_volume_$i
+  $WEED_BIN volume -dir=/seaweed_volume_$i \
+    -mserver=127.0.0.1:10001 \
+    -ip=$SEAWEED_IP -ip.bind=0.0.0.0 -port=3000$i \
+    -lusfFileSizeGB 1 -max 1 \
+    &> /volume.log
+done
